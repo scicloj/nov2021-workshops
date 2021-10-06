@@ -1,7 +1,7 @@
 Tentative list of workshops:
 
 | topic                             | main libraries involved                 | presenters                   |
-|-----------------------------------+-----------------------------------------+------------------------------|
+|-----------------------------------|-----------------------------------------|------------------------------|
 | How to talk with data scientists? |                                         | Joan Santiago                |
 | data wrangling: tables            | Tablecloth, tech.ml.dataset             | Mey Beisaron                 |
 | data wrangling: arrays            | dtype-next                              | Ethan Miller, David Sletten  |
