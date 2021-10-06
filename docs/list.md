@@ -1,4 +1,4 @@
-Tentative list of workshops:
+A tentative list of workshops:
 
 | topic                             | main libraries involved                 | presenters                   |
 |-----------------------------------|-----------------------------------------|------------------------------|
