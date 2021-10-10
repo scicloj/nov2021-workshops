@@ -11,7 +11,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | data wrangling: linear algebra                      | Neanderthal                             | ?                 |            |
 | Wrangling sequences with Injest                     | Injest                                  | John Newman       | yes        |
 | Visualizing data with Hanami                        | Hanami                                  | Kira McLean       |            |
-| data visualization                                  | ?                                       | Thomas Clark      |            |
+| Visualizing data with Hanami                        | Hanami                                  | Thomas Clark      | yes        |
 | Visualizing data with Viz.clj                       | Viz.clj                                 | Ashima Panjwani   | yes        |
 | Your namespace as a notebook                        | Notespace                               | Daniel Slutsky    | yes        |
 | Writing web apps with Fulcro                        | Fulcro                                  | Jakub Holy        |            |
