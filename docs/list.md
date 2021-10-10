@@ -3,7 +3,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 (updated 2021-10-07)
 
 | title                                               | main libraries involved                 | presenter         | confirmed? |
-|-----------------------------------------------------+-----------------------------------------+-------------------+------------|
+|-----------------------------------------------------|-----------------------------------------|-------------------|------------|
 | How to talk with data scientists?                   |                                         | Joan Santiago     | yes        |
 | Wrangling datasets with Tablecloth                  | Tablecloth, tech.ml.dataset             | Mey Beisaron      | yes        |
 | Wrangling arrays with dtype-next                    | dtype-next                              | Ethan Miller      |            |
