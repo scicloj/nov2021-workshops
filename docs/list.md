@@ -2,26 +2,30 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 
 (updated 2021-10-07)
 
-| topic                             | main libraries involved                 | presenters                   |
-|-----------------------------------|-----------------------------------------|------------------------------|
-| How to talk with data scientists? |                                         | Joan Santiago                |
-| data wrangling: tables            | Tablecloth, tech.ml.dataset             | Mey Beisaron                 |
-| data wrangling: arrays            | dtype-next                              | Ethan Miller, David Sletten  |
-| data wrangling: linear algebra    | Neanderthal                             | ?                            |
-| data wrangling: sequences         | Injest                                  | John Newman                  |
-| data visualization                | Hanami                                  | Kira McLean, Thomas Clark    |
-| data visualization                | Viz.clj                                 | Ashima Panjwani              |
-| literate programming              | Notespace                               | Daniel Slutsky               |
-| web applications                  | Fulcro                                  | Jakub Holy                   |
-| statistics: a conceptual intro    |                                         | Rohit Thadani                |
-| statistical computing             | Fastmath, kixi.stats, Fitdistr, Inferme | Daniel Slutsky               |
-| machine learning pipelines        | scicloj.ml                              | Daniel Slutsky               |
-| derivatives and autodiff          | Sicmutils                               | Tovieye Moses Ozi            |
-| interop: calling clj from python  | Libpython-clj                           | James Tolton                 |
-| data science workflows            | (a few)                                 | Ethan Miller, Daniel Slutsky |
+| title                                               | main libraries involved                 | presenter         | confirmed? |
+|-----------------------------------------------------+-----------------------------------------+-------------------+------------|
+| How to talk with data scientists?                   |                                         | Joan Santiago     | yes        |
+| Wrangling datasets with Tablecloth                  | Tablecloth, tech.ml.dataset             | Mey Beisaron      | yes        |
+| Wrangling arrays with dtype-next                    | dtype-next                              | Ethan Miller      |            |
+| Wrangling arrays with dtype-next                    | dtype-next                              | David Sletten     |            |
+| data wrangling: linear algebra                      | Neanderthal                             | ?                 |            |
+| Wrangling sequences with Injest                     | Injest                                  | John Newman       | yes        |
+| Visualizing data with Hanami                        | Hanami                                  | Kira McLean       |            |
+| data visualization                                  | ?                                       | Thomas Clark      |            |
+| Visualizing data with Viz.clj                       | Viz.clj                                 | Ashima Panjwani   |            |
+| Your namespace as a notebook                        | Notespace                               | Daniel Slutsky    | yes        |
+| Writing web apps with Fulcro                        | Fulcro                                  | Jakub Holy        |            |
+| An intro to statistical inference                   |                                         | Rohit Thadani     |            |
+| Modeling with probability                           | Fastmath, kixi.stats, Fitdistr, Inferme | Daniel Slutsky    | yes        |
+| Machine learning through pipelines                  | scicloj.ml                              | Daniel Slutsky    | yes        |
+| Computing derivatives and Automatic Differentiation | Sicmutils                               | Tovieye Moses Ozi |            |
+| Calling clj from python                             | Libpython-clj                           | James Tolton      |            |
+| A data science walkthrough                          | (a few)                                 | Ethan Miller      |            |
+| A data science walkthrough                          | (a few)                                 | Daniel Slutsky    | yes        |
 
 Comments:
-- The order does not represent timing.
+- Confirmed speakers will appear at the [re:Clojure website](https://www.reclojure.org/).
+- The ordering does not represent timing.
 - Some workshops will be repeated more than once, possibly with different teachers.
 - All sessions are planned to be self-contained.
 - Everything is still tentative.
