@@ -6,7 +6,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 |-----------------------------------------------------|-----------------------------------------|-------------------|------------|
 | How to talk with data scientists?                   |                                         | Joan Santiago     | yes        |
 | Wrangling datasets with Tablecloth                  | Tablecloth, tech.ml.dataset             | Mey Beisaron      | yes        |
-| Wrangling arrays with dtype-next                    | dtype-next                              | Ethan Miller      |            |
+| Wrangling arrays with dtype-next                    | dtype-next                              | Ethan Miller      | yes        |
 | Wrangling arrays with dtype-next                    | dtype-next                              | David Sletten     |            |
 | data wrangling: linear algebra                      | Neanderthal                             | ?                 |            |
 | Wrangling sequences with Injest                     | Injest                                  | John Newman       | yes        |
@@ -20,7 +20,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | Machine learning through pipelines                  | scicloj.ml                              | Daniel Slutsky    | yes        |
 | Computing derivatives and Automatic Differentiation | Sicmutils                               | Tovieye Moses Ozi |            |
 | Calling clj from python                             | Libpython-clj                           | James Tolton      |            |
-| A data science walkthrough                          | (a few)                                 | Ethan Miller      |            |
+| A data science walkthrough                          | (a few)                                 | Ethan Miller      | yes        |
 | A data science walkthrough                          | (a few)                                 | Daniel Slutsky    | yes        |
 
 Comments:
