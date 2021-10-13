@@ -19,9 +19,11 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | Modeling with probability                           | Fastmath, kixi.stats, Fitdistr, Inferme | Daniel Slutsky    | yes        |
 | Machine learning through pipelines                  | scicloj.ml                              | Daniel Slutsky    | yes        |
 | Computing derivatives and Automatic Differentiation | Sicmutils                               | Tovieye Moses Ozi |            |
-| Calling clj from python                             | Libpython-clj                           | James Tolton      |            |
+| The Devil’s Interop [1]                             | Libpython-clj                           | James Tolton      | yes        |
 | A data science walkthrough                          | (a few)                                 | Ethan Miller      | yes        |
 | A data science walkthrough                          | (a few)                                 | Daniel Slutsky    | yes        |
+
+[1] Invoking Clojure from Python natively with GraalVM, and other such matters as related to Clojure Polyglot Blookd Magick
 
 Comments:
 - Confirmed speakers will appear at the [re:Clojure website](https://www.reclojure.org/).
