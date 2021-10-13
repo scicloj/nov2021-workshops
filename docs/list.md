@@ -2,28 +2,28 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 
 (updated 2021-10-07)
 
-| title                                                                    | main libraries involved                 | presenter         | confirmed? |
-|--------------------------------------------------------------------------|-----------------------------------------|-------------------|------------|
-| How to talk with data scientists?                                        |                                         | Joan Santiago     | yes        |
-| Wrangling datasets with Tablecloth                                       | Tablecloth, tech.ml.dataset             | Mey Beisaron      | yes        |
-| Wrangling arrays with dtype-next                                         | dtype-next                              | Ethan Miller      | yes        |
-| Wrangling arrays with dtype-next                                         | dtype-next                              | David Sletten     |            |
-| Wrangling sequences with Injest                                          | Injest                                  | John Newman       | yes        |
-| Visualizing data with Hanami                                             | Hanami                                  | Kira McLean       |            |
-| Visualizing data with Hanami                                             | Hanami                                  | Thomas Clark      | yes        |
-| Visualizing data with Viz.clj                                            | Viz.clj                                 | Ashima Panjwani   | yes        |
-| A Crash Course in Oz for Data Visualization and Scientific Documentation | Oz                                      | Christopher Small | yes        |
-| Your namespace as a notebook                                             | Notespace                               | Daniel Slutsky    | yes        |
-| Writing web apps with Fulcro                                             | Fulcro                                  | Jakub Holy        | yes        |
-| An intro to statistical inference                                        |                                         | Rohit Thadani     |            |
-| Modeling with probability                                                | Fastmath, kixi.stats, Fitdistr, Inferme | Daniel Slutsky    | yes        |
-| Machine learning through pipelines                                       | scicloj.ml                              | Daniel Slutsky    | yes        |
-| Computing derivatives and Automatic Differentiation                      | Sicmutils                               | Tovieye Moses Ozi |            |
-| The Devil’s Interop [1]                                                  | Libpython-clj                           | James Tolton      | yes        |
-| A data science walkthrough                                               | (a few)                                 | Ethan Miller      | yes        |
-| A data science walkthrough                                               | (a few)                                 | Daniel Slutsky    | yes        |
+| title                                                                                                                                          | main libraries involved                 | presenter         | confirmed? |
+|------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|-------------------|------------|
+| How to talk with data scientists?                                                                                                              |                                         | Joan Santiago     | yes        |
+| Wrangling datasets with Tablecloth                                                                                                             | Tablecloth, tech.ml.dataset             | Mey Beisaron      | yes        |
+| Wrangling arrays with dtype-next                                                                                                               | dtype-next                              | Ethan Miller      | yes        |
+| Wrangling arrays with dtype-next                                                                                                               | dtype-next                              | David Sletten     |            |
+| Wrangling sequences with Injest                                                                                                                | Injest                                  | John Newman       | yes        |
+| Visualizing data with Hanami                                                                                                                   | Hanami                                  | Kira McLean       |            |
+| Visualizing data with Hanami                                                                                                                   | Hanami                                  | Thomas Clark      | yes        |
+| Visualizing data with Viz.clj                                                                                                                  | Viz.clj                                 | Ashima Panjwani   | yes        |
+| A Crash Course in Oz for Data Visualization and Scientific Documentation                                                                       | Oz                                      | Christopher Small | yes        |
+| Your namespace as a notebook                                                                                                                   | Notespace                               | Daniel Slutsky    | yes        |
+| Writing web apps with Fulcro                                                                                                                   | Fulcro                                  | Jakub Holy        | yes        |
+| An intro to statistical inference                                                                                                              |                                         | Rohit Thadani     |            |
+| Modeling with probability                                                                                                                      | Fastmath, kixi.stats, Fitdistr, Inferme | Daniel Slutsky    | yes        |
+| Machine learning through pipelines                                                                                                             | scicloj.ml                              | Daniel Slutsky    | yes        |
+| Computing derivatives and Automatic Differentiation                                                                                            | Sicmutils                               | Tovieye Moses Ozi |            |
+| The Devil’s Interop: Invoking Clojure from Python natively with GraalVM, and other such matters as related to Clojure Polyglot Blookd Magick   | Libpython-clj                           | James Tolton      | yes        |
+| A data science walkthrough                                                                                                                     | (a few)                                 | Ethan Miller      | yes        |
+| A data science walkthrough                                                                                                                     | (a few)                                 | Daniel Slutsky    | yes        |
 
-[1] Invoking Clojure from Python natively with GraalVM, and other such matters as related to Clojure Polyglot Blookd Magick
+[1] 
 
 Comments:
 - Confirmed speakers will appear at the [re:Clojure website](https://www.reclojure.org/).
