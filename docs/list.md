@@ -24,8 +24,6 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | A data science walkthrough                                                                                                                  | (a few)                                           | Ethan Miller      | yes        |
 | A data science walkthrough                                                                                                                  | (a few)                                           | Daniel Slutsky    | yes        |
 
-[1] 
-
 Comments:
 - Confirmed speakers will appear at the [re:Clojure website](https://www.reclojure.org/).
 - The ordering does not represent timing.
