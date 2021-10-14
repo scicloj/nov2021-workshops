@@ -1,6 +1,6 @@
 A tentative list of workshops for the [November pre-conference workshops](https://clojureverse.org/t/re-clojure-2021-pre-conference-workshops/8216/1):
 
-(updated 2021-10-07)
+(updated 2021-10-14)
 
 | title                                                                                                                                          | main libraries involved                 | presenter         | confirmed? |
 |------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------|-------------------|------------|
