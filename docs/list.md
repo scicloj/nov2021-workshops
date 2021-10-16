@@ -1,6 +1,6 @@
 A tentative list of workshops for the [November pre-conference workshops](https://clojureverse.org/t/re-clojure-2021-pre-conference-workshops/8216/1):
 
-(updated 2021-10-14)
+(updated 2021-10-16)
 
 | title                                                                                                                                       | main libraries involved                           | presenter         | confirmed? |
 |---------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|-------------------|------------|
@@ -23,6 +23,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | The Devil’s Interop: Invoking Clojure from Python natively with GraalVM, and other such matters as related to Clojure Polyglot Blood Magick | libpython-clj, tech.ml.datatype, GraalVM, CPython | James J. Tolton   | yes        |
 | A data science walkthrough                                                                                                                  | (a few)                                           | Ethan Miller      | yes        |
 | A data science walkthrough                                                                                                                  | (a few)                                           | Daniel Slutsky    | yes        |
+| Full-text search query log analysis                                                                                                         | lucene-grep                                       | Dainius Jocas     | yes        |
 
 Comments:
 - Confirmed speakers will appear at the [re:Clojure website](https://www.reclojure.org/).
@@ -31,4 +32,3 @@ Comments:
 - All sessions are planned to be self-contained.
 - Everything is still tentative.
 - Soon we'll run a survey to check for Clojurians' interests and preferred times, and will make this into a schedule.
-
