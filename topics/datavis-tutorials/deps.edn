@@ -2,6 +2,6 @@
  {aerial.hanami/aerial.hanami {:mvn/version "0.12.9"}
   org.scicloj/viz.clj         {:mvn/version "0.1.1-SNAPSHOT"}
   scicloj/tablecloth          {:mvn/version "6.012"}
-  scicloj/notespace           {:mvn/version "4-alpha-4"}
+  scicloj/notespace           {:mvn/version "4-alpha-5-SNAPSHOT"}
   io.github.nextjournal/clerk {:mvn/version "0.1.176"}
   nrepl/nrepl                 {:mvn/version "0.9.0-beta3"}}}
