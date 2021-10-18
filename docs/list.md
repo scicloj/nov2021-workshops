@@ -1,6 +1,6 @@
 A tentative list of workshops for the [November pre-conference workshops](https://clojureverse.org/t/re-clojure-2021-pre-conference-workshops/8216/1):
 
-(updated 2021-10-17)
+(updated 2021-10-18)
 
 | title                                                                                                                                       | main libraries involved                           | presenter         | confirmed? |
 |---------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|-------------------|------------|
@@ -13,7 +13,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | Visualizing data with Hanami                                                                                                                | Hanami                                            | Thomas Clark      | yes        |
 | Visualizing data with Viz.clj                                                                                                               | Viz.clj                                           | Ashima Panjwani   | yes        |
 | Using Clojurescript to extend the Logseq knowledge base                                                                                     | Logseq                                            | Tienson Qin       | yes        |
-| A Crash Course in Oz for Data Visualization and Scientific Documentation                                                                    | Oz                                                | Christopher Small | yes        |
+| Touring Oz: Notebooks, Visualizations, and Webapps, Oh My!                                                                                  | Oz                                                | Christopher Small | yes        |
 | Your namespace as a notebook                                                                                                                | Notespace                                         | Daniel Slutsky    | yes        |
 | Writing web apps with Fulcro                                                                                                                | Fulcro                                            | Jakub Holy        | yes        |
 | An intro to statistical inference                                                                                                           |                                                   | Rohit Thadani     |            |
