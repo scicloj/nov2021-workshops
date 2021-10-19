@@ -24,6 +24,7 @@ A tentative list of workshops for the [November pre-conference workshops](https:
 | A data science walkthrough                                                                                                                  | (a few)                                           | Ethan Miller      | yes        |
 | A data science walkthrough                                                                                                                  | (a few)                                           | Daniel Slutsky    | yes        |
 | Full-text search query log analysis                                                                                                         | lucene-grep                                       | Dainius Jocas     | yes        |
+| A gentle dive into XTDB https://www.eventbrite.com/e/xtdb-workshop-reclojure-tickets-191330985127                                           | xtdb-core                                         | Jeremy Taylor     | yes        |
 
 Comments:
 - Confirmed speakers will appear at the [re:Clojure website](https://www.reclojure.org/).
