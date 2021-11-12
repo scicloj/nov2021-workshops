@@ -39,6 +39,11 @@
 
 ;; ## Background
 
+;; ### Redefence
+
+;; * [Probabilistic Models of Cognition by Goodman, Tenenbaum, and the ProbMods Contributors](http://probmods.org/)
+
+;; * [Probabilistic Programming and Bayesian Methods for Hackers by Cam Davidson Pilon](https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers)
 
 ;; ### The Bayesian inference landscape in Clojure
 
@@ -321,5 +326,29 @@
      (plot/histogram {:height 200})
      kindly/to-hiccup)]
 
+
+;; ## Heirarchy (WIP)
+
+(def trials 10)
+(def successes [2 3 6 9])
+(def group [:A :A :B :B])
+
+(defmodel heirarchical-mocel-1
+  [a-alpha (:normal {:sd 5})
+   a-beta (:normal {:sd 5})
+   b-alpha (:normal {:sd 5})
+   b-beta (:normal {:sd 5})
+   p0 (:beta {:alpha a-alpha :beta a-beta})
+   p1 (:beta {:alpha a-alpha :beta a-beta})
+   p2 (:beta {:alpha b-alpha :beta b-beta})
+   p3 (:beta {:alpha b-alpha :beta b-beta})]
+  (model-result [(observe1 (distr :binomial {:trials trials :p p0})
+                           (successes 0))
+                 (observe1 (distr :binomial {:trials trials :p p1})
+                           (successes 1))
+                 (observe1 (distr :binomial {:trials trials :p p2})
+                           (successes 2))
+                 (observe1 (distr :binomial {:trials trials :p p3})
+                           (successes 3))]))
 
 
