@@ -69,7 +69,7 @@
 
 ;; * [cljplot](https://github.com/generateme/cljplot)
 
-;; ### (pseudo) random numbers with Fathmath
+;; ### (pseudo) random numbers with Fastmath
 
 (random/frand)
 
