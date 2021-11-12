@@ -1,17 +1,19 @@
 (ns inferme-tutorials.intro
-  (:require [fastmath.core :as math]
+  (:require [fastmath.core :as math] ; generateme
             [fastmath.random :as random]
             [fastmath.stats :as stats]
-            [inferme.core :refer :all]
+            [inferme.core :refer :all] ; generateme
             [inferme-tutorials.plot :as plot]
             [inferme.plot]
-            [scicloj.notespace.v4.api :as notespace]
+            [cljplot.core] ; generateme
+            [scicloj.notespace.v4.api :as notespace] ; scicloj
             [scicloj.notespace.v4.view :as notespace.view]
             [scicloj.notespace.v4.config :as notespace.config]
             [scicloj.kindly.api :as kindly]
             [scicloj.kindly.kind :as kind]
-            [fitdistr.core :as fitdistr]
+            [fitdistr.core :as fitdistr] ; generateme
             [fitdistr.distributions]))
+
 
 ;; # Intro to probabilistic modelling with Inferme
 
@@ -82,20 +84,30 @@
             #(let [rng (random/rng :isaac 1337)]
                (random/frandom rng)))
 
+(def rng1 (random/rng :isaac 1337))
+(random/frandom rng1)
+(random/frandom rng1)
+(random/frandom rng1)
+
 ;; ## Basic notions
 
 ;; ### Probability space
 
 (def N 1000)
 
-(def Omega (shuffle (range N)))
+(def Omega (set (shuffle (range N))))
 
 ;; ### Events
 
 (def Odd
   (->> Omega
        (filter (fn [omega]
-                 (< (* 3 omega) N)))))
+                 (< (* 3 omega) N)))
+       set))
+
+(count Omega)
+
+(count Odd)
 
 ;; ### Probability
 
@@ -109,8 +121,12 @@
 
 ;; ### Random variables
 
+;; r.v. -- a function from the probability space to numbers
+
 (defn X [omega]
-  (* omega omega))
+  (math/sq omega))
+
+(X 34)
 
 (->> Omega
      (map X)
@@ -122,15 +138,15 @@
 
 (->> Omega
      (map Y)
-     (take 3))
+     (take 9))
 
 (defn Z [omega]
   (let [rng (random/rng :isaac omega)]
-    (random/grandom rng)))
+    (random/grandom rng))) ; Gassian
 
 (->> Omega
      (map Z)
-     (take 3))
+     (take 9))
 
 ;; ### Events of a random variable
 
@@ -141,6 +157,21 @@
        set))
 
 (P Y-is-less-than-half)
+
+
+(->> Omega
+     (filter (comp #(< % 1/2)
+                   Y))
+     set
+     P)
+
+
+#_(->> Omega
+       (filter (comp pred
+                     Y))
+       set
+       P)
+
 
 ;; ### Distributions of random variables
 
@@ -167,6 +198,22 @@
        (filter (fn [omega]
                  (> (Y omega) 1/3)))
        set))
+
+(P Y-is-less-than-half)
+
+(P Y-is-more-than-third)
+
+(P (filter Y-is-less-than-half
+           Y-is-more-than-third))
+
+;; 1/3 < Y < 1/2
+;; 1/2-1/3 = 1/6
+
+
+;; What is the probability that
+;; Y is more than 1/3
+;; conditioned on
+;; Y being less than 1/2 ?
 
 (/ (P (filter Y-is-less-than-half Y-is-more-than-third))
    (P Y-is-less-than-half))
@@ -210,6 +257,12 @@
     frequencies
     delay)
 
+(-> @results1
+    (trace :Y)
+    (->> (map (fn [y] (> y 1/3))))
+    plot/frequencies
+    delay)
+
 ;; ## Binomial distribution
 
 (defmodel binomial-model-1
@@ -225,6 +278,10 @@
     frequencies
     delay)
 
+(-> (infer :forward-sampling binomial-model-1 {:samples 10000})
+    (trace :total)
+    plot/frequencies
+    delay)
 
 (defmodel binomial-model-2
   []
@@ -233,10 +290,9 @@
     (model-result []
                   {:total total})))
 
-
 (-> (infer :forward-sampling binomial-model-2 {:samples 10000})
     (trace :total)
-    frequencies
+    plot/frequencies
     delay)
 
 ;; ## Getting to know a coin -- a Bayesian approach
@@ -246,7 +302,7 @@
 (def coin1-tails (- coin1-trials coin1-heads))
 
 (defmodel coin-model-1
-  [p (:uniform-real)]
+  [p (:uniform-real)] ; prior
   (let [coin-flipping (distr :binomial {:trials coin1-trials
                                         :p p})]
     (model-result [(observe1 coin-flipping coin1-heads)])))
@@ -262,11 +318,15 @@
 
 (-> @coin-model-1-result
     (trace :p)
+    (->> (take 9)))
+
+(-> @coin-model-1-result
+    (trace :p)
     plot/lag
     delay)
 
 (-> @coin-model-1-result
-    (trace :p)
+    (trace :p) ; posterior
     plot/histogram
     delay)
 
@@ -333,11 +393,11 @@
 (def successes [2 3 6 9])
 (def group [:A :A :B :B])
 
-(defmodel heirarchical-mocel-1
-  [a-alpha (:normal {:sd 5})
-   a-beta (:normal {:sd 5})
-   b-alpha (:normal {:sd 5})
-   b-beta (:normal {:sd 5})
+(defmodel heirarchical-model-1
+  [a-alpha (:uniform-real 5)
+   a-beta (:uniform-real 5)
+   b-alpha (:uniform-real 5)
+   b-beta (:uniform-real 5)
    p0 (:beta {:alpha a-alpha :beta a-beta})
    p1 (:beta {:alpha a-alpha :beta a-beta})
    p2 (:beta {:alpha b-alpha :beta b-beta})
@@ -350,5 +410,17 @@
                            (successes 2))
                  (observe1 (distr :binomial {:trials trials :p p3})
                            (successes 3))]))
+
+
+(def heirarchical-model-results-1
+  (-> (infer :metropolis-hastings heirarchical-model-1
+             {:samples 10000
+              :thin    100})
+      delay))
+
+(-> @heirarchical-model-results-1
+    (trace :p0)
+    plot/histogram
+    delay)
 
 
