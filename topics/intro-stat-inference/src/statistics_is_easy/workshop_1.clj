@@ -1,4 +1,4 @@
-(ns statistics-is-easy.workshop
+(ns statistics-is-easy.workshop-1
   (:require [aerial.hanami.templates :as ht]
             [aerial.hanami.common :as hc]
             [kixi.stats.distribution :as kstatsd]
