@@ -281,9 +281,9 @@
        (filter is-significant?) ;;filter out successes - experiments where the null hypothesis is false
        count ;;count them
        ((fn [c] (if p (< (* p 1000) c) (/ c 1000)))))) ;;See if it rejects the null hypothesis atleast power times number of tries
-(power (fn [exp-num] (drug-experiment 10000 drug placebo)))
+(delay (power (fn [exp-num] (drug-experiment 10000 drug placebo))))
 ;;Can i reject the null hypothesis with 80% probability
-(power (fn [exp-num] (drug-experiment 10000 drug placebo)) 0.8)
+(delay (power (fn [exp-num] (drug-experiment 10000 drug placebo)) 0.8))
 ;##  Outliers 
 ;; Suppose we were measuring the confidence interval of average salaries as a precursor to the evaluation of does college 
 ;; education affect salary. But we have Bill Gates' salary in the mix
