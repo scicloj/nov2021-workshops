@@ -22,6 +22,8 @@
 
 ;; - Gorilla-REPL, Clojupyter, IClojure, Nextjournal
 
+;; - Maria.cloud
+
 ;; - Org-babel-Clojure, RMarkdown-Clojure
 
 ;; - Marginalia, Oz, Notespace, Clerk
@@ -39,7 +41,7 @@
 ;; - Oz
 ;; - Notespace
 ;; - Clerk
-;; - Godly
+;; - Goldly
 
 ;; ## Notespace principles
 
@@ -53,7 +55,7 @@
 
 ;; - testable docs / literate testing -- [clojisr](https://github.com/scicloj/clojisr)
 
-;; - visual documsnts -- [clojisr-examples](https://github.com/scicloj/clojisr-examples)
+;; - visual documents -- [clojisr-examples](https://github.com/scicloj/clojisr-examples)
 
 ;; - study, exploration -- [image-demo-1](https://scicloj.github.io/ml-study/projects/image-demo-1/docs/image-demo-1/session2-1/) from the ml-study group
 
@@ -124,6 +126,9 @@
 
 (BigBigBigText. "hi!")
 
+
+
+
 ;; ## Delays
 
 ;; When the evaluation value is a Clojure [delay](https://clojuredocs.org/clojure.core/delay), will render by dereferencing the delay.
@@ -161,9 +166,11 @@
 
 ;; ### Compatibility
 
-;; - kind
+;; - kinds
 
 ;; - view representation
 
 ;; - resource management
+
+
 
