@@ -12,3 +12,7 @@ pom.xml.asc
 .lein-failures
 .nrepl-port
 .cpcache/
+/.clj-kondo/
+/.lsp/
+/topics/sami-ethan-talk/zulip-scicloj.txt
+/topics/sami-ethan-talk/quick-start/zulip-scicloj.txt

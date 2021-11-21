@@ -1,60 +1,40 @@
 (ns fiddle)
 
-(comment
-  ;;---- starting the repl (start in command line in the folder where you are saving this file)
-  clojure -Sdeps "$(curl -sL https://bit.ly/johnsdeps)" -M:ad-hoc/data-science:alpha/hot-load:repl/cider -r
-  ;;---- once started just cider-connect-clj to the port displayed in terminal ^^^
-  )
-
-(require '[clojure.tools.deps.alpha.repl :refer [add-libs]])
-
-(add-libs '{scicloj/notespace {:mvn/version "4-alpha-13"}})
-
 (require '[scicloj.notespace.v4.api :as notespace]
          '[scicloj.kindly.kind :as kind])
 
 (comment
   (notespace/restart!)
+  ,)
 
-  (notespace/restart-events!)
-  (notespace/stop!)
 
-  (scicloj.notespace.v4.frontend.engine/stop!)
+(range 10)
 
-  )
+(def raw-data (read-string
+               (slurp "/home/sakalli/syncs/Dropbox/projects/nov2021-workshops/topics/sami-ethan-talk/quick-start/zulip-scicloj.txt")))
 
-;;;;
-(add-libs '{scicloj/tablecloth {:mvn/version "6.025"}})
+(take 1 raw-data)
+
+
+;; stream->topic->message
 
 
 
 (require '[tablecloth.api :as table])
-
 (require '[tech.v3.datatype.functional :as fun])
-
-
-;;(def raw-data (read-string (slurp "../zulip-scicloj.txt")))
-(def raw-data (read-string (slurp "./zulip-scicloj.txt")))
 
 (-> raw-data first keys)
 
-(take 1 raw-data)
+
 
 (def data (->> raw-data
                (map #(select-keys %
-                                  [:id
-                                   :stream_id
+                                  [
                                    :subject
                                    :sender_id
-                                   :sender_full_name
-                                   :type
                                    :timestamp
                                    :content]))
-               (#(table/dataset %
-                                #_{:parser-fn
-                                   {:timestamp [:local-date-time
-                                                (fn [el] (dtdt/milliseconds->datetime
-                                                         :local-date-time (* 1000 el)))]}}))))
+               table/dataset))
 
 ^kind/dataset
 (table/head data)
@@ -66,10 +46,15 @@
 (-> data
     (table/select-rows (comp #(= "local data science courses" %) :subject)))
 
-(table/head data-with-diff)
+#_(table/head data-with-diff)
+
+
+
 
 (def prompt-response-threshold (* 60 60 12))
 
+(comment
+  
 (def test-data
   [["a" 2]
    ["b" 3]
@@ -101,22 +86,21 @@
 (def test-data-col-gap-duration
  [2 3 2 3 2 3 3 2])
 
-(-> {:1 test-data-col-name
-     :2 test-data-col-gap-duration}
-    table/dataset
-    (table/group-by :1)
-    (table/group-by :2)
-    )
+;; (-> {:1 test-data-col-name
+;;      :2 test-data-col-gap-duration}
+;;     table/dataset
+;;     (table/group-by :1)
+;;     (table/group-by :2)
+;;     )
+;;   (table/group-by )
 
-    (table/group-by )
-
-(map #(identity [%1 %2]) test-data-col-name test-data-col-gap-duration)
+(map #(identity [%1 %2]) test-data-col-name test-data-col-gap-duration))
 ;;(["a" 2] ["b" 3] ["b" 2] ["a" 3] ["b" 2] ["c" 3] ["c" 3] ["b" 2])
 
 (defn secs-since-different-sender
   [sender gap-duration]
  (->>
-  (map #(identity [%1 %2]) sender gap-duration)
+  (map #(identity [%1 %2]) sender gap-duration) 
   (reduce (fn [acc current]
             (let [last (first acc)
                   last-sender (first last)
@@ -130,14 +114,9 @@
   reverse
   (map second)))
 
-(count
- (secs-since-different-sender test-data-col-name test-data-col-gap-duration))
-
-(count test-data-col-gap-duration)
 
 
-
-
+^kind/dataset
 (-> data
     (table/order-by :timestamp)
     (table/group-by :subject)
@@ -169,6 +148,7 @@
                         (fn [next-response-prompt?]
                           (if next-response-prompt? true false))
                         :boolean
+                        ;; 
                         (:next-response-prompt? %)
                         ))
     ;; mark all posts active or inactive based on time since poster switch
@@ -178,22 +158,42 @@
     (table/ungroup)
 
     ;;;; specific analysis from here
-
+    
     #_(table/add-column :active-and-not-same-sender? #(map (fn [ac ssal] (and ac (not ssal)))
                                                          (:active-conversation? %)
                                                          (:same-sender-as-last? %)))
-    (table/select-rows (comp not :same-sender-as-last?))
+    (table/select-rows (complement :same-sender-as-last?))
+    
     (table/group-by [:subject :active-conversation?])
     (table/aggregate {:count #(-> % :active-conversation? count)
                       :first-post #(-> % :timestamp first)
-                      :last-post #(-> % :timestamp last)})
-
+                      :last-post #(-> % :timestamp last)
+                      :mean-gap (comp #(/ % 3600) fun/mean :secs-since-diff-sender)}
+                     )
+    #_(table/select-rows (comp not not :active-conversation?)) ;; is this a tablecloth bug? if i enter the keyword it filters out everything
+    #_(table/order-by :count :desc)
+    (table/order-by :subject :active-conversation? :desc)
+    
     #_(table/aggregate-columns [:active-conversation? :timestamp] [#(count %)
                                                                  #(first %)])
-
+    
     #_(table/select-rows (comp #(= % "preferred notebook") :subject))
     #_(table/drop-columns [:id :type :stream_id :timestamp :sender_id #_:secs-since-last :same-sender-as-last? :content])
     #_(table/select-columns [:sender_full_name :secs-since-diff-sender :active-conversation?])
     #_(table/select-columns [:topic :active-conversation? :same-sender-as-last? :active-and-not-same-sender?])
     (vary-meta merge {:print-column-max-width 50})
     )
+
+;; was the next after a quick response.
+;; messeges
+;; check if the forward looking is consistence.
+;; looking at. the data. descriptive statistics.
+;; introduction, ourselves, get the quickstart going what our goals are in terms of the talk.
+;; fastmath
+;; scicloj-ml
+;; hanami
+;; fun
+;; slide of libraries. we may draw upon.
+;; 
+
+
