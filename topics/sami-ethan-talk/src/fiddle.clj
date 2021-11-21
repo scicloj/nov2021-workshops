@@ -75,16 +75,9 @@
       (table/add-column :prompt-response?
                         #(fun/< (:secs-since-diff-sender %)
                                 prompt-response-threshold))
-      (table/add-column :next-response-prompt?
+      (table/add-column :active?
                         #(fun/< (fun/shift (:secs-since-diff-sender %) -1)
                                 prompt-response-threshold))
-      (table/add-column :active?
-                        #(tech.v3.datatype/emap
-                          (fn [next-response-prompt?]
-                            (if next-response-prompt? true false))
-                          :boolean
-                         ;; 
-                          (:next-response-prompt? %)))
       (table/add-column
        :secs-since-diff-sender
        #(map (fn [secs]
@@ -94,11 +87,11 @@
        [:same-sender-as-last?
         :secs-since-last
         :secs-since-diff-sender
-        :prompt-response?
-        :next-response-prompt?])
+        :prompt-response?])
       (table/ungroup)))
 
 (require '[scicloj.viz.api :as viz])
+
 (require '[tech.v3.datatype.datetime :as dtype-dt])
 
 (-> messages-active?
