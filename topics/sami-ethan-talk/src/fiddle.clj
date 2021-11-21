@@ -22,12 +22,12 @@
 
 (-> raw-data first keys)
 
-(def messages (->> raw-data
-                   (table/dataset)
-                   (table/select-columns [:subject
-                                          :sender_id
-                                          :timestamp
-                                          :content])))
+(def messages (-> raw-data
+                  (table/dataset)
+                  (table/select-columns [:subject
+                                         :sender_id
+                                         :timestamp
+                                         :content])))
 
 ^kind/dataset
 (table/head messages)
