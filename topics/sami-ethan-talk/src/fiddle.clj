@@ -5,11 +5,12 @@
 
 
 (comment
-  (notespace/restart!))
+  (notespace/restart! {:open-browser? true})
+  ,)
 
 (range 10)
 
-(System/getProperty "user.dir")
+;;(System/getProperty "user.dir")
 (def raw-data (read-string
                (slurp "./zulip-scicloj.txt")))
 
@@ -18,17 +19,19 @@
 ;; stream->topic->message
 
 (require '[tablecloth.api :as table]
-         '[tech.v3.datatype.functional :as fun])
+         '[tablecloth.time.api :as time]
+         '[tech.v3.datatype :refer [emap] :as dtype]
+         '[tech.v3.datatype.functional :as fun]
+         '[tech.v3.datatype.datetime :as dtype-dt])
 
 (-> raw-data first keys)
 
-(def messages (->> raw-data
-                   (map #(select-keys %
-                                      [:subject
-                                       :sender_id
-                                       :timestamp
-                                       :content]))
-                   table/dataset))
+(def messages (-> raw-data
+                  (table/dataset)
+                  (table/select-columns [:subject
+                                         :sender_id
+                                         :timestamp
+                                         :content])))
 
 ^kind/dataset
 (table/head messages)
@@ -80,46 +83,55 @@
                         #(fun/< (fun/shift (:secs-since-diff-sender %) -1)
                                 prompt-response-threshold))
       (table/add-column :active?
-                        #(tech.v3.datatype/emap
-                          (fn [next-response-prompt?]
-                            (if next-response-prompt? true false))
+                        #(emap
+                          (fn [next-response-prompt? prompt-response?]
+                            (if next-response-prompt?
+                              true
+                              (if prompt-response? true false)))
                           :boolean
-                         ;; 
-                          (:next-response-prompt? %)))
+                          (:next-response-prompt? %)
+                          (:prompt-response? %)))
       (table/add-column
        :secs-since-diff-sender
        #(map (fn [secs]
                (when (not= secs ridiculously-large-gap-fix-me) secs))
              (:secs-since-diff-sender %)))
+      (table/add-column :date-time
+                        #(emap
+                          (fn [seconds-ts]
+                            (time/milliseconds->anytime
+                             (* 1000 seconds-ts)
+                             :local-date-time))
+                          :local-date-time
+                          (:timestamp %)))
+      (table/add-column :month #(emap (fn [t] (time/month t {:as-number? true}))
+                                      :int32
+                                      (:date-time %)))
+      (table/add-column :year #(emap time/year :int32 (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
-        :secs-since-last
+        #_:secs-since-last
         :secs-since-diff-sender
         :prompt-response?
-        :next-response-prompt?])
+        #_:next-response-prompt?])
       (table/ungroup)))
 
+(table/shape messages-active?)
+
+^kind/dataset
+(table/head messages-active?)
+
+;; (table/write! messages-active? "prepped-data.csv")
+
 (require '[scicloj.viz.api :as viz])
-(require '[tech.v3.datatype.datetime :as dtype-dt])
+(require '[aerial.hanami.templates :as ht])
 
 (-> messages-active?
-    (table/add-column :date-time
-                      #(map (fn [t]
-                              (dtype-dt/milliseconds->datetime
-                               :local-date-time
-                               (* 1000 t))) (:timestamp %)))
-    (table/add-column :month
-                      #(map (partial dtype-dt/long-temporal-field
-                                     :months) (:date-time %)))
-    (table/add-column :year
-                      #(map (partial dtype-dt/long-temporal-field
-                                     :years) (:date-time %)))
     (table/group-by [:year :month])
     (table/aggregate {:active? #(-> % :active? count)})
     (table/order-by [:year :month])
-
     (viz/data)
-    (viz/type :point)
+    (viz/type ht/line-chart)
     (viz/x :month)
     (viz/y :active?)
     (viz/color "year")
