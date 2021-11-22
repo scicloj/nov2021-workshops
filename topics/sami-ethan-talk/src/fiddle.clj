@@ -84,10 +84,13 @@
                                 prompt-response-threshold))
       (table/add-column :active?
                         #(emap
-                          (fn [next-response-prompt?]
-                            (if next-response-prompt? true false))
+                          (fn [next-response-prompt? prompt-response?]
+                            (if next-response-prompt?
+                              true
+                              (if prompt-response? true false)))
                           :boolean
-                          (:next-response-prompt? %)))
+                          (:next-response-prompt? %)
+                          (:prompt-response? %)))
       (table/add-column
        :secs-since-diff-sender
        #(map (fn [secs]
