@@ -101,7 +101,9 @@
                              :local-date-time))
                           :local-date-time
                           (:timestamp %)))
-      (table/add-column :month #(emap time/month :string (:date-time %)))
+      (table/add-column :month #(emap (fn [t] (time/month t {:as-number? true}))
+                                      :int32
+                                      (:date-time %)))
       (table/add-column :year #(emap time/year :int32 (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
