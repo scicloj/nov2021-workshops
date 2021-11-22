@@ -19,6 +19,8 @@
 ;; stream->topic->message
 
 (require '[tablecloth.api :as table]
+         '[tablecloth.time.api :as time]
+         '[tech.v3.datatype :refer [emap] :as dtype]
          '[tech.v3.datatype.functional :as fun]
          '[tech.v3.datatype.datetime :as dtype-dt])
 
@@ -81,7 +83,7 @@
                         #(fun/< (fun/shift (:secs-since-diff-sender %) -1)
                                 prompt-response-threshold))
       (table/add-column :active?
-                        #(tech.v3.datatype/emap
+                        #(emap
                           (fn [next-response-prompt?]
                             (if next-response-prompt? true false))
                           :boolean
@@ -92,16 +94,15 @@
                (when (not= secs ridiculously-large-gap-fix-me) secs))
              (:secs-since-diff-sender %)))
       (table/add-column :date-time
-                        #(map (fn [t]
-                                (dtype-dt/milliseconds->datetime
-                                :local-date-time
-                                (* 1000 t))) (:timestamp %)))
-      (table/add-column :month
-                        #(map (partial dtype-dt/long-temporal-field
-                                      :months) (:date-time %)))
-      (table/add-column :year
-                        #(map (partial dtype-dt/long-temporal-field
-                                      :years) (:date-time %)))
+                        #(emap
+                          (fn [seconds-ts]
+                            (time/milliseconds->anytime
+                             (* 1000 seconds-ts)
+                             :local-date-time))
+                          :local-date-time
+                          (:timestamp %)))
+      (table/add-column :month #(emap time/month :string (:date-time %)))
+      (table/add-column :year #(emap time/year :int32 (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
         #_:secs-since-last
@@ -111,6 +112,9 @@
       (table/ungroup)))
 
 (table/shape messages-active?)
+
+^kind/dataset
+(table/head messages-active?)
 
 ;; (table/write! messages-active? "prepped-data.csv")
 
