@@ -5,11 +5,12 @@
 
 
 (comment
-  (notespace/restart!))
+  (notespace/restart! {:open-browser? true})
+  ,)
 
 (range 10)
 
-(System/getProperty "user.dir")
+;;(System/getProperty "user.dir")
 (def raw-data (read-string
                (slurp "./zulip-scicloj.txt")))
 
@@ -18,7 +19,8 @@
 ;; stream->topic->message
 
 (require '[tablecloth.api :as table]
-         '[tech.v3.datatype.functional :as fun])
+         '[tech.v3.datatype.functional :as fun]
+         '[tech.v3.datatype.datetime :as dtype-dt])
 
 (-> raw-data first keys)
 
@@ -83,42 +85,44 @@
                           (fn [next-response-prompt?]
                             (if next-response-prompt? true false))
                           :boolean
-                         ;; 
                           (:next-response-prompt? %)))
       (table/add-column
        :secs-since-diff-sender
        #(map (fn [secs]
                (when (not= secs ridiculously-large-gap-fix-me) secs))
              (:secs-since-diff-sender %)))
+      (table/add-column :date-time
+                        #(map (fn [t]
+                                (dtype-dt/milliseconds->datetime
+                                :local-date-time
+                                (* 1000 t))) (:timestamp %)))
+      (table/add-column :month
+                        #(map (partial dtype-dt/long-temporal-field
+                                      :months) (:date-time %)))
+      (table/add-column :year
+                        #(map (partial dtype-dt/long-temporal-field
+                                      :years) (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
-        :secs-since-last
+        #_:secs-since-last
         :secs-since-diff-sender
         :prompt-response?
-        :next-response-prompt?])
+        #_:next-response-prompt?])
       (table/ungroup)))
 
+(table/shape messages-active?)
+
+;; (table/write! messages-active? "prepped-data.csv")
+
 (require '[scicloj.viz.api :as viz])
-(require '[tech.v3.datatype.datetime :as dtype-dt])
+(require '[aerial.hanami.templates :as ht])
 
 (-> messages-active?
-    (table/add-column :date-time
-                      #(map (fn [t]
-                              (dtype-dt/milliseconds->datetime
-                               :local-date-time
-                               (* 1000 t))) (:timestamp %)))
-    (table/add-column :month
-                      #(map (partial dtype-dt/long-temporal-field
-                                     :months) (:date-time %)))
-    (table/add-column :year
-                      #(map (partial dtype-dt/long-temporal-field
-                                     :years) (:date-time %)))
     (table/group-by [:year :month])
     (table/aggregate {:active? #(-> % :active? count)})
     (table/order-by [:year :month])
-
     (viz/data)
-    (viz/type :point)
+    (viz/type ht/line-chart)
     (viz/x :month)
     (viz/y :active?)
     (viz/color "year")
