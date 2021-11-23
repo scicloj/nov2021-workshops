@@ -5,6 +5,7 @@
 
 (comment
   (notespace/restart! {:open-browser? true})
+
   (notespace/restart-events!)
   ,)
 
@@ -48,15 +49,29 @@
         test-ds  (table/select-columns (:test split-pair) features)
         model (-> train-ds
                   (set-inference-target target-column)
-                  (ml/train (merge {:model-type model-type})))
+                  (ml/train {:model-type model-type}))
         predictions (ml/predict test-ds model)]
     (ml/mae (target-column predictions) (target-column test-ds))))
 
 (score
  split-pair
- [:active? :year]
+ [:year]
  :active?
- :smile.regression/random-forest)
+ :smile.classification/decision-tree)
+
+
+(def model(-> split-pair
+              :train
+              (table/select-columns [:month :year :active?])
+              (set-inference-target :active?)
+              (ml/train {:model-type :smile.classification/decision-tree})
+              ;; (table/columns)
+              ))
+
+
+(ml/predict (-> split-pair :test (table/select-columns [:year :month :active?]))
+            model)
+
 
 
 
