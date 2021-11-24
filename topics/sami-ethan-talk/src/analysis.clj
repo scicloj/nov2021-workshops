@@ -1,7 +1,8 @@
 (ns analysis)
 
 (require '[tablecloth.api :as table]
-         '[scicloj.notespace.v4.api :as notespace])
+         '[scicloj.notespace.v4.api :as notespace]
+         '[scicloj.kindly.kind :as kind])
 
 (comment
   (notespace/restart! {:open-browser? true})
@@ -41,43 +42,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require '[scicloj.ml.core :as ml]
+         '[tech.v3.dataset :as tmd]
          '[tech.v3.datatype.statistics :as stats]
-         '[tech.v3.dataset.modelling :refer [set-inference-target]])
+         '[tech.v3.dataset.modelling :refer [set-inference-target] :as tmd-model])
 
 (defn score [split-pair features target-column model-type]
-  (let [train-ds (table/select-columns (:train split-pair) features)
-        test-ds  (table/select-columns (:test split-pair) features)
+  (let [all-columns (conj features target-column)
+        train-ds (table/select-columns (:train split-pair) all-columns)
+        test-ds  (table/select-columns (:test split-pair) all-columns)
         model (-> train-ds
+                  (tmd/categorical->number [:active?])
                   (set-inference-target target-column)
                   (ml/train {:model-type model-type}))
         predictions (ml/predict test-ds model)]
-    (ml/mae (target-column predictions) (target-column test-ds))))
+    (table/bind test-ds predictions)))
 
+;; this yields a ds with predictions and i think related probabilities
 (score
  split-pair
  [:year]
  :active?
  :smile.classification/decision-tree)
-
-
-(def model(-> split-pair
-              :train
-              (table/select-columns [:month :year :active?])
-              (set-inference-target :active?)
-              (ml/train {:model-type :smile.classification/decision-tree})
-              ;; (table/columns)
-              ))
-
-
-(ml/predict (-> split-pair :test (table/select-columns [:year :month :active?]))
-            model)
-
-
-
-
-
-
-
-
 
 
