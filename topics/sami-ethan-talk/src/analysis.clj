@@ -59,21 +59,19 @@
                   (tmd-model/set-inference-target :active?)
                   (ml/train {:model-type model-type}))
         predicted (ml/predict test-ds model)]
-    (let [actual (-> test-ds (tmd/column-cast :active? :float64) :active?)
+    (let [actual (-> test-ds :active? dtype/->float-array)
           predictions (:active? predicted)]
       (fun//
        (-> (fun/eq actual predictions)
            (fun/sum))
        (tc/row-count test-ds)))))
 
-
-
 ;; this yields a ds with predictions and i think related probabilities
 ;; how do we analyze this further. need to join this result again with
 ;; original data?
 (score
  split-pair
- [:year]
+ [:year #_:dayofmonth #_:dayofweek]
  :active?
  :smile.classification/decision-tree)
 
