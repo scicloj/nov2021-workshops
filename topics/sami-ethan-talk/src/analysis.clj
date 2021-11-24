@@ -33,10 +33,6 @@
     {:train (select-split :train sds) 
      :test  (select-split :test sds)}))
 
-(def split-pair
-  (our-split (-> messages
-                 (tc/select-columns (comp (partial not= 2018) :year)))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modelling 
@@ -70,12 +66,12 @@
 ;; this yields a ds with predictions and i think related probabilities
 ;; how do we analyze this further. need to join this result again with
 ;; original data?
-(score
- split-pair
- [:year #_:dayofmonth #_:dayofweek]
- :active?
- :smile.classification/decision-tree)
 
+(-> messages
+    our-split
+    (score [:year]
+           :active?
+           :smile.classification/decision-tree))
 
 ;; pipeline that works but no scoring yet
 (def mypipe
