@@ -22,7 +22,8 @@
          '[tablecloth.time.api :as time]
          '[tech.v3.datatype :refer [emap] :as dtype]
          '[tech.v3.datatype.functional :as fun]
-         '[tech.v3.datatype.datetime :as dtype-dt])
+         '[tech.v3.datatype.datetime :as dtype-dt]
+         '[clojure.string :as s])
 
 (-> raw-data first keys)
 
