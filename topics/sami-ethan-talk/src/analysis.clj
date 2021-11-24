@@ -34,7 +34,8 @@
      :test  (select-split :test sds)}))
 
 (def split-pair
-  (our-split messages))
+  (our-split (-> messages
+                 (tc/select-columns (comp (partial not= 2018) :year)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
