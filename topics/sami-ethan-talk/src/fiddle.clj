@@ -5,7 +5,7 @@
 
 
 (comment
-  (notespace/restart! {:open-browser? true})
+  (notespace/restart! #_{:open-browser? true})
   ,)
 
 (range 10)
@@ -114,6 +114,7 @@
          (emap #(time/dayofweek % {:as-number? true})
                :int32
                (:date-time ds))))
+      (table/add-column :hour #(emap time/hour :int32 (:date-time %)))
       (table/add-column :year #(emap time/year :int32 (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
