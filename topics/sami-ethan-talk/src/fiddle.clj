@@ -108,6 +108,12 @@
                 (emap #(time/month % {:as-number? true})
                       :int32
                       (:date-time ds))))
+      (table/add-column
+       :dayofweek
+       (fn [ds]
+         (emap #(time/dayofweek % {:as-number? true})
+               :int32
+               (:date-time ds))))
       (table/add-column :year #(emap time/year :int32 (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
