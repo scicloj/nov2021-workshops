@@ -96,17 +96,18 @@
        #(map (fn [secs]
                (when (not= secs ridiculously-large-gap-fix-me) secs))
              (:secs-since-diff-sender %)))
-      (table/add-column :date-time
-                        #(emap
-                          (fn [seconds-ts]
-                            (time/milliseconds->anytime
-                             (* 1000 seconds-ts)
-                             :local-date-time))
-                          :local-date-time
-                          (:timestamp %)))
-      (table/add-column :month #(emap (fn [t] (time/month t {:as-number? true}))
-                                      :int32
-                                      (:date-time %)))
+      (table/add-column
+       :date-time
+       #(emap
+         (fn [seconds-ts]
+           (time/milliseconds->anytime (* 1000 seconds-ts) :local-date-time))
+         :local-date-time
+         (:timestamp %)))
+      (table/add-column
+       :month (fn [ds]
+                (emap #(time/month % {:as-number? true})
+                      :int32
+                      (:date-time ds))))
       (table/add-column :year #(emap time/year :int32 (:date-time %)))
       (table/drop-columns
        [:same-sender-as-last?
