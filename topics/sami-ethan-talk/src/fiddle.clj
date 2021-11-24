@@ -123,6 +123,11 @@
                (:date-time ds))))
       (table/add-column :hour #(emap time/hour :int32 (:date-time %)))
       (table/add-column :year #(emap time/year :int32 (:date-time %)))
+      (table/add-column :keyword-?
+                        (fn [ds]
+                          (emap #(s/includes? % "?")
+                                :boolean
+                                (:content ds))))
       (table/drop-columns
        [:same-sender-as-last?
         #_:secs-since-last
