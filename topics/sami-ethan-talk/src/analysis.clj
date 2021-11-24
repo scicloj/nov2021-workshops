@@ -74,13 +74,19 @@
            :active?
            :smile.classification/decision-tree))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Modelling w/ Pipeline
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; pipeline that works but no scoring yet
 (def mypipe
   (ml/pipeline
    (tc-pipe/select-columns [:year :active?])
    (mm/categorical->number [:active?])
-   (mm/set-inference-target [:active?])
+   (mm/set-inference-target :active?)
    (mm/model {:model-type :smile.classification/decision-tree})))
+
+(def split-pair (our-split messages))
 
 (def trained-ctx
   (mypipe {:metamorph/data (:train split-pair)
@@ -88,16 +94,19 @@
 
 trained-ctx
 
-
 (def test-ctx
   (mypipe
    (assoc trained-ctx
           :metamorph/data (:test split-pair)
           :metamorph/mode :transform)))
 
-(-> test-ctx
-    :metamorph/data
-    (tech.v3.dataset.modelling/column-values->categorical :active?)
-    (#(tc/add-column (:test split-pair) :predicted %)))
+(let [actual    (-> split-pair :test :active?)
+      predicted (-> test-ctx
+                    :metamorph/data
+                    (tmd-model/column-values->categorical :active?))]
+  (fun// (-> (fun/eq actual predicted)
+             (fun/sum))
+         (tc/row-count actual)))
+
 
 
