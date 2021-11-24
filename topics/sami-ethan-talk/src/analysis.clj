@@ -1,6 +1,6 @@
 (ns analysis)
 
-(require '[tablecloth.api :as table]
+(require '[tablecloth.api :as tc]
          '[scicloj.notespace.v4.api :as notespace]
          '[scicloj.kindly.kind :as kind])
 
@@ -10,11 +10,11 @@
   (notespace/restart-events!)
   ,)
 
-(def messages (table/dataset "prepped-data.csv" {:key-fn keyword}))
+(def messages (tc/dataset "prepped-data.csv" {:key-fn keyword}))
 
-(table/head messages)
+(tc/head messages)
 
-(table/shape messages)
+(tc/shape messages)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Splitting
@@ -22,14 +22,14 @@
 
 (defn our-split [ds]
   (let [sds (-> ds
-                (table/group-by [:subject])
-                (table/without-grouping-> (table/split :holdout)))
+                (tc/group-by [:subject])
+                (tc/without-grouping-> (tc/split :holdout)))
         select-split (fn [split-name split-ds]
                       (-> split-ds
-                          (table/without-grouping->
-                           (table/select-rows
+                          (tc/without-grouping->
+                           (tc/select-rows
                             (comp (partial = split-name) :$split-name)))
-                          (table/ungroup)))]
+                          (tc/ungroup)))]
     {:train (select-split :train sds) 
      :test  (select-split :test sds)}))
 
@@ -42,26 +42,66 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require '[scicloj.ml.core :as ml]
+         '[scicloj.ml.metamorph :as mm]
+         '[tablecloth.pipeline :as tc-pipe]
+         '[tech.v3.datatype :as dtype]
+         '[tech.v3.datatype.functional :as fun]
          '[tech.v3.dataset :as tmd]
-         '[tech.v3.datatype.statistics :as stats]
-         '[tech.v3.dataset.modelling :refer [set-inference-target] :as tmd-model])
+         '[tech.v3.dataset.modelling :as tmd-model]
+         '[tech.v3.datatype.statistics :as stats])
 
 (defn score [split-pair features target-column model-type]
   (let [all-columns (conj features target-column)
-        train-ds (table/select-columns (:train split-pair) all-columns)
-        test-ds  (table/select-columns (:test split-pair) all-columns)
+        train-ds (tc/select-columns (:train split-pair) all-columns)
+        test-ds  (tc/select-columns (:test split-pair) all-columns)
         model (-> train-ds
                   (tmd/categorical->number [:active?])
-                  (set-inference-target target-column)
+                  (tmd-model/set-inference-target :active?)
                   (ml/train {:model-type model-type}))
-        predictions (ml/predict test-ds model)]
-    (table/bind test-ds predictions)))
+        predicted (ml/predict test-ds model)]
+    (let [actual (-> test-ds (tmd/column-cast :active? :float64) :active?)
+          predictions (:active? predicted)]
+      (fun//
+       (-> (fun/eq actual predictions)
+           (fun/sum))
+       (tc/row-count test-ds)))))
+
+
 
 ;; this yields a ds with predictions and i think related probabilities
+;; how do we analyze this further. need to join this result again with
+;; original data?
 (score
  split-pair
  [:year]
  :active?
  :smile.classification/decision-tree)
+
+
+;; pipeline that works but no scoring yet
+(def mypipe
+  (ml/pipeline
+   (tc-pipe/select-columns [:year :active?])
+   (mm/categorical->number [:active?])
+   (mm/set-inference-target [:active?])
+   (mm/model {:model-type :smile.classification/decision-tree})))
+
+(def trained-ctx
+  (mypipe {:metamorph/data (:train split-pair)
+           :metamorph/mode :fit}))
+
+trained-ctx
+
+
+(def test-ctx
+  (mypipe
+   (assoc trained-ctx
+          :metamorph/data (:test split-pair)
+          :metamorph/mode :transform)))
+
+(-> test-ctx
+    :metamorph/data
+    (tech.v3.dataset.modelling/column-values->categorical :active?)
+    (#(tc/add-column (:test split-pair) :predicted %)))
 
 
