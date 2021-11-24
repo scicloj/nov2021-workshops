@@ -22,7 +22,7 @@
 
 (defn our-split [ds]
   (let [sds (-> ds
-                (tc/group-by [:subject])
+                (tc/group-by [:subject :local-date])
                 (tc/without-grouping-> (tc/split :holdout)))
         select-split (fn [split-name split-ds]
                       (-> split-ds
