@@ -104,6 +104,13 @@
          :local-date-time
          (:timestamp %)))
       (table/add-column
+       :local-date
+       #(emap
+         (fn [t]
+           (time/convert-to t :local-date))
+         :local-date
+         (:date-time %)))
+      (table/add-column
        :month (fn [ds]
                 (emap #(time/month % {:as-number? true})
                       :int32
