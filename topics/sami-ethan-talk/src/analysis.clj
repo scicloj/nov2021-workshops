@@ -50,14 +50,15 @@
 (defn score [split-pair features target-column model-type]
   (let [all-columns (conj features target-column)
         train-ds (tc/select-columns (:train split-pair) all-columns)
-        test-ds  (tc/select-columns (:test split-pair) all-columns)
+        test-ds  (tc/select-columns (:test split-pair) features)
         model (-> train-ds
                   (tmd/categorical->number [:active?])
                   (tmd-model/set-inference-target :active?)
                   (ml/train {:model-type model-type}))
         predicted (ml/predict test-ds model)]
-    (let [actual (-> test-ds :active? dtype/->float-array)
-          predictions (:active? predicted)]
+    (let [actual (-> split-pair :test :active?)
+          predictions (-> predicted
+                          (tmd-model/column-values->categorical :active?))]
       (fun//
        (-> (fun/eq actual predictions)
            (fun/sum))
