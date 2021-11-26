@@ -1,4 +1,4 @@
-(ns fiddle)
+(ns prepare)
 
 (require '[scicloj.notespace.v4.api :as notespace]
          '[scicloj.kindly.kind :as kind])
