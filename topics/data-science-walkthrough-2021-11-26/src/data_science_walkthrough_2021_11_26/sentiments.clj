@@ -1,4 +1,4 @@
-(ns data-science-walkrhrough-2021-11-26.sentiments
+(ns data-science-walkthrough-2021-11-26.sentiments
   (:require [tablecloth.api :as tc]
             [tech.v3.datatype :refer [emap] :as dtype]
             [tech.v3.datatype.functional :as fun]
@@ -95,3 +95,5 @@
                            (:content %)))))
 
 
+(def sentiment-colnames
+  [:afinn-sentiment :trust :surprise :joy :positive :negative :anticipation :anger :sadness :fear])
