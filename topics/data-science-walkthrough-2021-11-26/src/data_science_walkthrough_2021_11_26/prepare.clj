@@ -12,6 +12,7 @@
                   (tc/dataset)
                   (tc/select-columns [:display_recipient
                                       :subject
+                                      :content
                                       :sender_id
                                       :timestamp
                                       :content])
@@ -24,4 +25,7 @@
                                                       (:content ds)))})
                   (tc/drop-columns :content)))
 
+
+
 (tc/write! messages "data/prepared-messages.csv")
+
