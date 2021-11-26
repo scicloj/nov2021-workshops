@@ -39,25 +39,19 @@
 
 (def ridiculously-large-gap-fix-me 9999999999)
 
-(defn secs-since-different-sender
-  [sender gap-duration]
-  (->>
-   (map #(identity [%1 %2]) sender gap-duration)
-   (reduce (fn [acc current]
-             (let [last (first acc)
-                   last-sender (first last)
-                   last-gap-duration (second last)
-                   current-sender (first current)
-                   current-gap-duratiion (second current)]
-               (if (= current-sender last-sender)
-                 (conj (rest acc)
-                       [last-sender ridiculously-large-gap-fix-me] ;; fixme
-                       [current-sender
-                        (+ current-gap-duratiion
-                           last-gap-duration)])
-                 (conj acc current)))) '())
-   reverse
-   (map second)))
+(defn secs-since-different-sender [sender gap-duration]
+  (->> (map vector sender gap-duration)
+       (reduce (fn [acc current]
+                 (let [[last-sender last-gap-duration] (first acc)
+                       [current-sender current-gap-duratiion] current]
+                   (if (= current-sender last-sender)
+                     (conj (rest acc)
+                           [last-sender nil] ;; fixme
+                           [current-sender (+ current-gap-duratiion
+                                              last-gap-duration)])
+                     (conj acc current)))) '())
+       reverse
+       (map second)))
 
 (def messages-active?
   (-> messages
