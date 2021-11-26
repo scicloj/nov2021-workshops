@@ -5,13 +5,16 @@
            [tech.v3.datatype.datetime :as dtype-dt]
            [clojure.string :as s]))
 
+;; (defonce raw-data (read-string
+;;                    (slurp "data/scicloj-zulip.edn")))
 (defonce raw-data (read-string
-                   (slurp "data/scicloj-zulip.edn")))
+                   (slurp "/home/sakalli/projects/nov2021-workshops/zulip-scicloj.txt")))
 
 (def messages (-> raw-data
                   (tc/dataset)
                   (tc/select-columns [:display_recipient
                                       :subject
+                                      :content
                                       :sender_id
                                       :timestamp
                                       :content])
@@ -22,6 +25,9 @@
                                                 (emap #(s/includes? % "?")
                                                       :boolean
                                                       (:content ds)))})
-                  (tc/drop-columns :content)))
+                  #_(tc/drop-columns :content)))
+
+
 
 (tc/write! messages "data/prepared-messages.csv")
+
