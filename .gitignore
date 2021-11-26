@@ -12,3 +12,5 @@ pom.xml.asc
 .lein-failures
 .nrepl-port
 .cpcache/
+/zulip-scicloj.txt
+prepared-messages.csv
