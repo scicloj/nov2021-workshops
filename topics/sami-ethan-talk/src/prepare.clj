@@ -8,15 +8,10 @@
   (notespace/restart! #_{:open-browser? true})
   ,)
 
-(range 10)
-
-;;(System/getProperty "user.dir")
 (def raw-data (read-string
                (slurp "./zulip-scicloj.txt")))
 
 (take 1 raw-data)
-
-;; stream->topic->message
 
 (require '[tablecloth.api :as table]
          '[tablecloth.time.api :as time]
