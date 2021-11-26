@@ -1,13 +1,12 @@
 {:deps      {org.clojure/clojure {:mvn/version "1.10.3"}
-             ;; scicloj/notespace {:mvn/version "4-alpha-13"}
+             scicloj/notespace {:mvn/version "4-alpha-16"}
              aerial.hanami/aerial.hanami {:mvn/version "0.12.9"}
              org.scicloj/viz.clj {:mvn/version "0.1.1-SNAPSHOT"}
              scicloj/tablecloth {:mvn/version "6.031"}
              org.scicloj/tablecloth.time {:mvn/version "1.00-alpha-4-SNAPSHOT"}
              scicloj/scicloj.ml {:mvn/version "0.1.1"}}
  :aliases {:notespace {:extra-deps {nrepl/nrepl       {:mvn/version "0.8.3"}
-                                    cider/cider-nrepl {:mvn/version "0.26.0"}
-                                    scicloj/notespace {:mvn/version "4-alpha-13"}}
+                                    cider/cider-nrepl {:mvn/version "0.26.0"}}
                        :main-opts  ["-m" "nrepl.cmdline"
                                     "--port" "4444"
                                     "--middleware" "[scicloj.notespace.v4.nrepl/middleware,cider.nrepl/cider-middleware]"
