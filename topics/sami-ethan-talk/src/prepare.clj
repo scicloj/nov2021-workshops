@@ -13,7 +13,7 @@
 
 (take 1 raw-data)
 
-(require '[tablecloth.api :as table]
+(require '[tablecloth.api :as tc]
          '[tablecloth.time.api :as time]
          '[tech.v3.datatype :refer [emap] :as dtype]
          '[tech.v3.datatype.functional :as fun]
@@ -22,18 +22,23 @@
 
 (-> raw-data first keys)
 
-(def messages (-> raw-data
-                  (table/dataset)
-                  (table/select-columns [:subject
-                                         :sender_id
-                                         :timestamp
-                                         :content])))
+(def messages
+  (-> raw-data
+      (tc/dataset)
+      (tc/select-columns [:subject
+                             :sender_id
+                             :timestamp
+                             :content
+                             :display_recipient])
+      (tc/rename-columns {:display_recipient :stream
+                             :subject           :topic
+                             :sender_id         :sender-id})))
 
 ^kind/dataset
-(table/head messages)
+(tc/head messages)
 
 ^kind/dataset
-(table/info messages)
+(tc/info messages)
 
 (def prompt-response-threshold (* 60 60 12))
 
