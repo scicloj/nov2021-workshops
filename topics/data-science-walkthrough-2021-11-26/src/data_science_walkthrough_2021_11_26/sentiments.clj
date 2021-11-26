@@ -1,4 +1,4 @@
-(ns sentiments
+(ns data-science-walkrhrough-2021-11-26.sentiments
   (:require [tablecloth.api :as tc]
             [tech.v3.datatype :refer [emap] :as dtype]
             [tech.v3.datatype.functional :as fun]
@@ -15,12 +15,12 @@
                   (assoc acc k (read-string v))) {})))
 
 (def nrc-lexicon
- (->> "lexicons/NRC-Emotion-Lexicon/NRC-Emotion-Lexicon-v0.92/NRC-Emotion-Lexicon-Wordlevel-v0.92.txt"
-      slurp 
-      (#(s/split % #"\t0\r\n"))
-      (map #(s/split % #"\t"))
-      (reduce (fn [acc [k v]]
-                (assoc acc k (keyword v))) {})))
+  (->> "lexicons/NRC-Emotion-Lexicon/NRC-Emotion-Lexicon-v0.92/NRC-Emotion-Lexicon-Wordlevel-v0.92.txt"
+       slurp 
+       (#(s/split % #"\t0\r\n"))
+       (map #(s/split % #"\t"))
+       (reduce (fn [acc [k v]]
+                 (assoc acc k (keyword v))) {})))
 (defn words
   [content]
   (->
@@ -41,9 +41,9 @@
   [lexicon aggregation-func content]
   (->> content
        words
-  (map lexicon)
-  (remove nil?)
-  aggregation-func))
+       (map lexicon)
+       (remove nil?)
+       aggregation-func))
 
 
 
@@ -55,27 +55,43 @@
        (filter (comp #(= % emotion) second))
        (into {})))
 
-(->
- (tc/dataset "data/prepared-messages.csv")
- (tc/add-column :message-word-count #(map (fn [content]
-                                            (->> content
-                                                 words
-                                                 (remove nil?)
-                                                 count)) (get % "content")))
- (tc/add-column :afinn-sentiment #(map (partial sentiment afinn-lexicon (partial reduce +)) (get % "content")))
- (tc/add-column :trust #(map (partial sentiment (nrc-emotion-lexicon :trust) (partial count)) (get % "content"))) 
- (tc/add-column :surprise #(map (partial sentiment (nrc-emotion-lexicon :surprise) (partial count)) (get % "content"))) 
- (tc/add-column :joy #(map (partial sentiment (nrc-emotion-lexicon :joy) (partial count)) (get % "content"))) 
- (tc/add-column :positive #(map (partial sentiment (nrc-emotion-lexicon :positive) (partial count)) (get % "content"))) 
- (tc/add-column :negative #(map (partial sentiment (nrc-emotion-lexicon :negative) (partial count)) (get % "content"))) 
- (tc/add-column :anticipation #(map (partial sentiment (nrc-emotion-lexicon :anticipation) (partial count)) (get % "content"))) 
- (tc/add-column :anger #(map (partial sentiment (nrc-emotion-lexicon :anger) (partial count)) (get % "content"))) 
- (tc/add-column :sadness #(map (partial sentiment (nrc-emotion-lexicon :sadness) (partial count)) (get % "content"))) 
- (tc/add-column :fear #(map (partial sentiment (nrc-emotion-lexicon :fear) (partial count)) (get % "content")))
- (tc/select-columns [:surprise :joy :positive :negative :anticipation :anger :sadness :trust :fear :message-word-count]))
-
-
-
-
+(defn add-sentiments [ds]
+  (-> ds
+      (tc/add-column :message-word-count #(map (fn [content]
+                                                 (->> content
+                                                      words
+                                                      (remove nil?)
+                                                      count))
+                                               (:content %)))
+      (tc/add-column :afinn-sentiment
+                     #(map (partial sentiment afinn-lexicon (partial reduce +))
+                           (:content %)))
+      (tc/add-column :trust
+                     #(map (partial sentiment (nrc-emotion-lexicon :trust) (partial count))
+                           (:content %)))
+      (tc/add-column :surprise
+                     #(map (partial sentiment (nrc-emotion-lexicon :surprise) (partial count))
+                           (:content %)))
+      (tc/add-column :joy
+                     #(map (partial sentiment (nrc-emotion-lexicon :joy) (partial count))
+                           (:content %)))
+      (tc/add-column :positive
+                     #(map (partial sentiment (nrc-emotion-lexicon :positive) (partial count))
+                           (:content %)))
+      (tc/add-column :negative
+                     #(map (partial sentiment (nrc-emotion-lexicon :negative) (partial count))
+                           (:content %)))
+      (tc/add-column :anticipation
+                     #(map (partial sentiment (nrc-emotion-lexicon :anticipation) (partial count))
+                           (:content %)))
+      (tc/add-column :anger
+                     #(map (partial sentiment (nrc-emotion-lexicon :anger) (partial count))
+                           (:content %)))
+      (tc/add-column :sadness
+                     #(map (partial sentiment (nrc-emotion-lexicon :sadness) (partial count))
+                           (:content %)))
+      (tc/add-column :fear
+                     #(map (partial sentiment (nrc-emotion-lexicon :fear) (partial count))
+                           (:content %)))))
 
 
