@@ -98,26 +98,20 @@
            (time/milliseconds->anytime (* 1000 seconds-ts) :local-date-time))
          :local-date-time
          (:timestamp %)))
-      (tc/add-column
-       :local-date
-       #(emap
-         (fn [t]
-           (time/convert-to t :local-date))
-         :local-date
-         (:date-time %)))
-      (tc/add-column
-       :month (fn [ds]
-                (emap #(time/month % {:as-number? true})
-                      :int32
-                      (:date-time ds))))
-      (tc/add-column
-       :dayofweek
-       (fn [ds]
-         (emap #(time/dayofweek % {:as-number? true})
-               :int32
-               (:date-time ds))))
-      (tc/add-column :hour #(emap time/hour :int32 (:date-time %)))
-      (tc/add-column :year #(emap time/year :int32 (:date-time %)))))
+      (tc/add-columns {:local-date #(emap
+                                     (fn [t]
+                                       (time/convert-to t :local-date))
+                                     :local-date (:date-time %))
+                       :month (fn [ds]
+                                (emap #(time/month % {:as-number? true})
+                                      :int32
+                                      (:date-time ds)))
+                       :dayofweek (fn [ds]
+                                    (emap #(time/dayofweek % {:as-number? true})
+                                          :int32
+                                          (:date-time ds)))
+                       :hour #(emap time/hour :int32 (:date-time %))
+                       :year #(emap time/year :int32 (:date-time %))})))
 
 (defn add-message-content-features [ds]
   (-> ds
