@@ -5,7 +5,7 @@
 
 
 (comment
-  (notespace/restart! {:open-browser? true})
+  (notespace/restart! #_{:open-browser? true})
   ,)
 
 (range 10)
@@ -22,7 +22,8 @@
          '[tablecloth.time.api :as time]
          '[tech.v3.datatype :refer [emap] :as dtype]
          '[tech.v3.datatype.functional :as fun]
-         '[tech.v3.datatype.datetime :as dtype-dt])
+         '[tech.v3.datatype.datetime :as dtype-dt]
+         '[clojure.string :as s])
 
 (-> raw-data first keys)
 
@@ -96,18 +97,38 @@
        #(map (fn [secs]
                (when (not= secs ridiculously-large-gap-fix-me) secs))
              (:secs-since-diff-sender %)))
-      (table/add-column :date-time
-                        #(emap
-                          (fn [seconds-ts]
-                            (time/milliseconds->anytime
-                             (* 1000 seconds-ts)
-                             :local-date-time))
-                          :local-date-time
-                          (:timestamp %)))
-      (table/add-column :month #(emap (fn [t] (time/month t {:as-number? true}))
-                                      :int32
-                                      (:date-time %)))
+      (table/add-column
+       :date-time
+       #(emap
+         (fn [seconds-ts]
+           (time/milliseconds->anytime (* 1000 seconds-ts) :local-date-time))
+         :local-date-time
+         (:timestamp %)))
+      (table/add-column
+       :local-date
+       #(emap
+         (fn [t]
+           (time/convert-to t :local-date))
+         :local-date
+         (:date-time %)))
+      (table/add-column
+       :month (fn [ds]
+                (emap #(time/month % {:as-number? true})
+                      :int32
+                      (:date-time ds))))
+      (table/add-column
+       :dayofweek
+       (fn [ds]
+         (emap #(time/dayofweek % {:as-number? true})
+               :int32
+               (:date-time ds))))
+      (table/add-column :hour #(emap time/hour :int32 (:date-time %)))
       (table/add-column :year #(emap time/year :int32 (:date-time %)))
+      (table/add-column :keyword-?
+                        (fn [ds]
+                          (emap #(s/includes? % "?")
+                                :boolean
+                                (:content ds))))
       (table/drop-columns
        [:same-sender-as-last?
         #_:secs-since-last
