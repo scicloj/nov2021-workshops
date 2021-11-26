@@ -40,10 +40,6 @@
 ^kind/dataset
 (tc/info messages)
 
-(def prompt-response-threshold (* 60 60 12))
-
-(def ridiculously-large-gap-fix-me 9999999999)
-
 (defn secs-since-different-sender [sender gap-duration]
   (->> (map vector sender gap-duration)
        (reduce (fn [acc current]
@@ -58,85 +54,106 @@
        reverse
        (map second)))
 
-(def messages-active?
-  (-> messages
-      (table/order-by :timestamp)
-      (table/group-by :subject)
-      (table/add-column :same-sender-as-last?
-                        #(let [sender-id (:sender_id %)]
-                           (fun/eq sender-id (fun/shift sender-id 1))))
-      (table/add-column :secs-since-last
-                        #(let [timestamp (:timestamp %)]
-                           (fun/- timestamp (fun/shift timestamp 1))))
-      (table/add-column :secs-since-diff-sender
-                        #(secs-since-different-sender
-                          (:sender_id %) (:secs-since-last %)))
-      (table/add-column :prompt-response?
-                        #(fun/< (:secs-since-diff-sender %)
-                                prompt-response-threshold))
-      (table/add-column :next-response-prompt?
-                        #(fun/< (fun/shift (:secs-since-diff-sender %) -1)
-                                prompt-response-threshold))
-      (table/add-column :active?
-                        #(emap
-                          (fn [next-response-prompt? prompt-response?]
-                            (if next-response-prompt?
-                              true
-                              (if prompt-response? true false)))
-                          :boolean
-                          (:next-response-prompt? %)
-                          (:prompt-response? %)))
-      (table/add-column
-       :secs-since-diff-sender
-       #(map (fn [secs]
-               (when (not= secs ridiculously-large-gap-fix-me) secs))
-             (:secs-since-diff-sender %)))
-      (table/add-column
+(defn add-conversation-flow-features [ds]
+  (let [prompt-response-threshold (* 60 60 12)]
+    (-> ds
+        (tc/group-by [:topic :stream])
+        (tc/add-column :same-sender-as-last?
+                       #(let [sender-id (:sender-id %)]
+                          (fun/eq sender-id (fun/shift sender-id 1))))
+        (tc/add-column :secs-since-last
+                       #(let [timestamp (:timestamp %)]
+                          (fun/- timestamp (fun/shift timestamp 1))))
+        (tc/add-column :secs-since-diff-sender
+                       #(secs-since-different-sender
+                         (:sender-id %) (:secs-since-last %)))
+        ;; in a sequence of msgs by the same user, let's drop all buth
+        ;; the first, i.e. those that have `nil` :values in this row
+        ;; created above.
+        (tc/drop-rows (complement :secs-since-diff-sender))
+        (tc/add-column :prompt-response?
+                       #(fun/< (:secs-since-diff-sender %)
+                               prompt-response-threshold))
+        (tc/add-column :next-response-time-until
+                       #(fun/shift (:secs-since-diff-sender %) -1))
+        (tc/add-column :next-response-prompt?
+                       #(fun/< (fun/shift (:secs-since-diff-sender %) -1)
+                               prompt-response-threshold))
+        (tc/add-column :active?
+                       #(emap
+                         (fn [next-response-prompt? prompt-response?]
+                           (if next-response-prompt? true
+                               (if prompt-response? true false)))
+                         :boolean
+                         (:next-response-prompt? %)
+                         (:prompt-response? %)))
+        (tc/ungroup))))
+
+(defn add-time-features [ds]
+  (-> ds
+      (tc/add-column
        :date-time
        #(emap
          (fn [seconds-ts]
            (time/milliseconds->anytime (* 1000 seconds-ts) :local-date-time))
          :local-date-time
          (:timestamp %)))
-      (table/add-column
+      (tc/add-column
        :local-date
        #(emap
          (fn [t]
            (time/convert-to t :local-date))
          :local-date
          (:date-time %)))
-      (table/add-column
+      (tc/add-column
        :month (fn [ds]
                 (emap #(time/month % {:as-number? true})
                       :int32
                       (:date-time ds))))
-      (table/add-column
+      (tc/add-column
        :dayofweek
        (fn [ds]
          (emap #(time/dayofweek % {:as-number? true})
                :int32
                (:date-time ds))))
-      (table/add-column :hour #(emap time/hour :int32 (:date-time %)))
-      (table/add-column :year #(emap time/year :int32 (:date-time %)))
-      (table/add-column :keyword-?
-                        (fn [ds]
-                          (emap #(s/includes? % "?")
-                                :boolean
-                                (:content ds))))
-      (table/drop-columns
-       [:same-sender-as-last?
-        #_:secs-since-last
-        :secs-since-diff-sender
-        :prompt-response?
-        #_:next-response-prompt?])
-      (table/ungroup)))
+      (tc/add-column :hour #(emap time/hour :int32 (:date-time %)))
+      (tc/add-column :year #(emap time/year :int32 (:date-time %)))))
 
-(table/shape messages-active?)
+(defn add-message-content-features [ds]
+  (-> ds
+      (tc/add-columns {:keyword-? (fn [ds]
+                                    (emap #(s/includes? % "?")
+                                          :boolean
+                                          (:content ds)))})
+      (tc/drop-columns [:content])))
+
+
+(def messages-with-features
+ (-> messages
+    add-time-features
+    add-conversation-flow-features
+    add-message-content-features
+    ))
 
 ^kind/dataset
-(table/head messages-active?)
+(tc/head messages-with-features)
+
 
 ;; (table/write! messages-active? "prepped-data.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (require '[scicloj.viz.api :as viz])
 (require '[aerial.hanami.templates :as ht])
