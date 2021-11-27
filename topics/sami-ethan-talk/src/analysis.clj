@@ -20,19 +20,18 @@
 ;; Splitting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn topic-day-split [ds]
-  (let [sds (-> ds
-                (tc/group-by [:subject :local-date])
-                (tc/without-grouping-> (tc/split :holdout {:seed 1})))
-        select-split (fn [split-name split-ds]
-                      (-> split-ds
-                          (tc/without-grouping->
-                           (tc/select-rows
-                            (comp (partial = split-name) :$split-name)))
-                          (tc/ungroup)))]
-    {:train (select-split :train sds) 
-     :test  (select-split :test sds)}))
-
+(def topic-day-split
+  (-> messages
+      (tc/group-by [:topic :local-date])
+      (tc/without-grouping->
+       (tc/split :holdout {:seed 1})
+       (tc/add-column :data
+                      #(map (fn [data split-name]
+                              (tc/add-column data :$split-name split-name))
+                            (:data %)
+                            (:$split-name %))))
+      (tc/ungroup)
+      (tc/group-by :$split-name {:result-type :as-maps})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modelling 
