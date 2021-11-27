@@ -32,7 +32,7 @@
             [fastmath.core :as math]
             [fastmath.stats]
             [fastmath.random :as random]
-            [data-science-walkthrough-2021-11-26.sentiments :as sentiment]))
+            [data-science-walkthrough-2021-11-27.sentiments :as sentiment]))
 
 (comment
   (notespace/restart! {:open-browser? true})
