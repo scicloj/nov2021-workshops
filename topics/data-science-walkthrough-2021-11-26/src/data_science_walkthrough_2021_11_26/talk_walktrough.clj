@@ -121,48 +121,6 @@ prepared-messages
  :fear 0.0}
 
 
-
-
-(ns data-science-walkrhrough-2021-11-27.ml
-  (:require [tablecloth.api :as tc]
-            [tablecloth.time.api :as time]
-            [scicloj.notespace.v4.api :as notespace]
-            [scicloj.kindly.kind :as kind]
-            [scicloj.kindly.api :as kindly]
-            [scicloj.ml.core :as ml]
-            [scicloj.metamorph.ml.loss :as loss]
-            [scicloj.ml.metamorph :as mm]
-            [scicloj.ml.dataset]
-            [tablecloth.pipeline :as tc-pipe]
-            [tech.v3.datatype :as dtype :refer [emap]]
-            [tech.v3.datatype.functional :as fun]
-            [tech.v3.datatype.rolling :as rolling]
-            [tech.v3.dataset :as tmd]
-            [tech.v3.dataset.print :as dataset-print]
-            [tech.v3.dataset.modelling :as tmd-model]
-            [tech.v3.datatype.statistics :as stats]
-            [aerial.hanami.common :as hc]
-            [aerial.hanami.templates :as ht]
-            [scicloj.viz.api :as viz]
-            [scicloj.viz.dataset]
-            [tech.viz.vega]
-            [fastmath.core :as math]
-            [fastmath.stats]
-            [fastmath.random :as random]
-            [data-science-walkthrough-2021-11-27.sentiments :as sentiment]))
-
-(comment
-  (notespace/restart! {:open-browser? true})
-
-  (notespace/restart-events!))
-
-(defonce prepared-messages
-  (-> "data/prepared-messages.csv"
-      (tc/dataset {:key-fn keyword
-                   :dataset-name "prepared messages"})))
-
-prepared-messages
-
 ;; # features
 
 (defn seconds-since-different-sender [sender gap-duration]
