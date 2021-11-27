@@ -4,6 +4,7 @@
 
 ;; Sami Kallinen, Ethan Miller, Daniel Slutsky
 
+:_
 ;; # setup
 
 (ns data-science-walkrhrough-2021-11-27.ml
@@ -77,12 +78,13 @@ prepared-messages
       (tc/add-column :same-sender-as-last? #(let [sender-id (:sender-id %)]
                                               (fun/eq sender-id (fun/shift sender-id 1))))
       (tc/add-column :seconds-since-last #(let [timestamp (:timestamp %)]
-                                         (fun/- timestamp (fun/shift timestamp 1))))
+                                            (fun/- timestamp (fun/shift timestamp 1))))
       (tc/add-column :seconds-since-diff-sender #(seconds-since-different-sender
                                                   (:sender-id %) (:seconds-since-last %)))
       (tc/drop-rows (complement :seconds-since-diff-sender))
                                         ; dropping messages which are not the firsts
                                         ; in a sequence by the same sender
+      
       (tc/add-column :date-time #(emap
                                   (fn [seconds-ts]
                                     (time/milliseconds->anytime (* 1000 seconds-ts) :local-date-time))
@@ -137,9 +139,6 @@ messages-with-features
 
 ;; # ml preparations
 
-(-> {:x (range 9)}
-    tc/dataset
-    (tc/split :holdout {:seed 1}))
 
 (def topic-date-split
   (-> messages-with-features
@@ -158,28 +157,7 @@ messages-with-features
       tc/ungroup
       (tc/group-by :$split-name {:result-type :as-map})))
 
-
 ;; # exploring-train
-
-(-> topic-date-split
-    :train
-    :next-response-time
-    fastmath.stats/mean)
-
-(-> topic-date-split
-    :train
-    :next-response-time
-    fastmath.stats/stddev)
-
-(-> topic-date-split
-    :train
-    :next-response-time
-    fun/mean)
-
-(-> topic-date-split
-    :train
-    :next-response-time
-    tech.v3.datatype.statistics/standard-deviation)
 
 
 ^kind/vega
@@ -187,21 +165,6 @@ messages-with-features
     :train
     :next-response-time
     (tech.viz.vega/histogram :next-response-time))
-
-(-> topic-date-split
-    :train
-    :next-response-time
-    fun/log10
-    (->> (map (fn [x] (Double/isNaN x))))
-    frequencies)
-
-(-> topic-date-split
-    :train
-    :next-response-time
-    fun/log10
-    (->> (filter pos?)
-         (map (fn [x] (Double/isNaN x))))
-    frequencies)
 
 ^kind/vega
 (-> topic-date-split
@@ -211,7 +174,6 @@ messages-with-features
     (->> (filter pos?))
     (tech.viz.vega/histogram :log-next-response-time))
 
-(> Double/NaN 0)
 
 (-> topic-date-split
     :train
@@ -344,7 +306,8 @@ messages-with-features
 
 
 
-(-> messages-with-features
+(-> topic-date-split
+    :train
     (tc/select-columns [:seconds-since-diff-sender :next-response-time])
     (tc/select-rows (fn [row]
                       (->> row
@@ -358,12 +321,16 @@ messages-with-features
            :YSCALE {:type "log"})
     viz/viz)
 
+(->> topic-date-split
+     :train
+     ((juxt :seconds-since-diff-sender :next-response-time))
+     (map fun/log)
+     (apply fastmath.stats/correlation))
 
 
-;; # ml
+;; # regression
 
-
-(def pipe1
+(def regression-pipe1
   (ml/pipeline
    (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
                                                              :seconds-since-diff-sender 
@@ -371,73 +338,51 @@ messages-with-features
                          :log-next-response-time #(-> %
                                                       :next-response-time
                                                       fun/log10)})
-   ;; (tc-pipe/add-column :safe-ma #(-> %
-   ;;                                   :ma-of-log-seconds-since-diff-sender
-   ;;                                   (->> (map (fn [x]
-   ;;                                               (if (Double/isFinite x)
-   ;;                                                 x
-   ;;                                                 0))))))
-   (mm/select-columns [;; :hour
-                       ;; :keyword-?
-                       ;; :year
-                       ;; :joy :positive :anticipation
-                       ;; :stream
-                       ;; :safe-ma
-                       :log-seconds-since-diff-sender
+   (mm/select-columns [:log-seconds-since-diff-sender
                        :log-next-response-time])
-   ;; (ml/lift tmd/categorical->one-hot [:hour])
-   ;; (ml/lift tmd/categorical->one-hot [:year])
-   ;; (ml/lift tmd/categorical->one-hot [:stream])
    (mm/set-inference-target :log-next-response-time)
    {:metamorph/id :model}
-   (mm/model {:model-type ;; :smile.regression/random-forest
-              :smile.regression/ordinary-least-square
-              ;; :lambda1 10.0
-              ;; :lambda2 10.0
-              })))
+   (mm/model {:model-type :smile.regression/ordinary-least-square})))
 
-(def trained-ctx1
-  (pipe1 {:metamorph/data (:train topic-date-split)
+(def regression-trained-ctx1
+  (regression-pipe1 {:metamorph/data (:train topic-date-split)
           :metamorph/mode :fit}))
 
-(def test-ctx1
-  (pipe1
-   (assoc trained-ctx1
+(def regression-test-ctx1
+  (regression-pipe1
+   (assoc regression-trained-ctx1
           :metamorph/data (:test topic-date-split)
           :metamorph/mode :transform)))
 
-(-> trained-ctx1
+(-> regression-trained-ctx1
     :model
     ml/explain)
 
+(defn regression-test-ctx->measures [regression-test-ctx]
+  (let [actual        (-> topic-date-split
+                          :test
+                          :next-response-time)
+        log-actual    (-> actual
+                          fun/log10)
+        log-predicted (-> regression-test-ctx
+                          :metamorph/data
+                          :log-next-response-time)
+        predicted     (->> log-predicted
+                           (fun/pow 10))
+        mse-of-logs   (loss/mse log-actual log-predicted)
+        mse           (loss/mse actual predicted)]
+    {:mse-of-logs mse-of-logs
+     :mse         mse
+     :R2-of-logs  (fun// mse-of-logs (stats/variance log-actual))
+     :R2          (fun// mse (stats/variance actual))}))
 
-(let [actual    (-> topic-date-split
-                    :test
-                    :next-response-time)
-      predicted (-> topic-date-split
-                    :train
-                    :next-response-time
-                    fun/mean
-                    (->> (repeat (count actual))))]
-  (loss/mse actual predicted))
-
-
-(let [actual    (-> topic-date-split
-                    :test
-                    :next-response-time)
-      predicted (-> test-ctx1
-                    :metamorph/data
-                    :log-next-response-time
-                    (->> (fun/pow 10)))]
-  (loss/mse actual predicted))
-
-
+(regression-test-ctx->measures regression-test-ctx1)
 
 
 (let [actual    (-> topic-date-split
                     :test
                     :next-response-time)
-      predicted (-> test-ctx1
+      predicted (-> regression-test-ctx1
                     :metamorph/data
                     :log-next-response-time
                     (->> (fun/pow 10)))]
@@ -453,17 +398,90 @@ messages-with-features
       viz/viz))
 
 
-(-> topic-date-split
-    :train
-    (tc/select-rows (fn [row]
-                      (-> row
-                          :next-response-time
-                          (> 10000000)))))
+
+(let [actual    (-> topic-date-split
+                    :test
+                    :next-response-time)
+      predicted (-> regression-test-ctx1
+                    :metamorph/data
+                    :log-next-response-time
+                    (->> (fun/pow 10)))]
+  (-> {:actual    actual
+       :predicted predicted}
+      tc/dataset
+      viz/data
+      (viz/x "predicted")
+      (viz/y "actual")
+      (viz/type "point")
+      viz/viz))
+
+
+(def regression-pipe2
+  (ml/pipeline
+   (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
+                                                             :seconds-since-diff-sender 
+                                                             fun/log10)
+                         :log-next-response-time #(-> %
+                                                      :next-response-time
+                                                      fun/log10)})
+   (mm/select-columns [:year
+                       :stream
+                       :surprise
+                       :joy
+                       :sadness
+                       :anger
+                       :anticipation
+                       :log-seconds-since-diff-sender
+                       :log-next-response-time])
+   (mm/categorical->one-hot [:stream])
+   (mm/categorical->one-hot [:year])
+   (mm/set-inference-target :log-next-response-time)
+   {:metamorph/id :model}
+   (mm/model {:model-type :smile.regression/ridge})))
+
+(def regression-trained-ctx2
+  (regression-pipe2 {:metamorph/data (:train topic-date-split)
+          :metamorph/mode :fit}))
+
+(def regression-test-ctx2
+  (regression-pipe2
+   (assoc regression-trained-ctx2
+          :metamorph/data (:test topic-date-split)
+          :metamorph/mode :transform)))
+
+(-> regression-trained-ctx2
+    :model
+    ml/explain
+    (update :coefficients #(sort-by first %)))
+
+(regression-test-ctx->measures regression-test-ctx2)
 
 
 ;; # classification
 
-(defn number->category [column]
+(def classification-pipe1
+  (ml/pipeline
+   (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
+                                                             :seconds-since-diff-sender 
+                                                             fun/log10)})
+   (mm/select-columns [:log-seconds-since-diff-sender
+                       :active?])
+   (mm/categorical->number [:active?])
+   (mm/set-inference-target :active?)
+   {:metamorph/id :model}
+   (mm/model {:model-type :smile.classification/logistic-regression})))
+
+(def classification-trained-ctx1
+  (classification-pipe1 {:metamorph/data (:train topic-date-split)
+                         :metamorph/mode :fit}))
+
+(def classification-test-ctx1
+  (classification-pipe1
+   (assoc classification-trained-ctx1
+          :metamorph/data (:test topic-date-split)
+          :metamorph/mode :transform)))
+
+(defn numbers->categories [column]
   (let [lookup (->> column
                     meta
                     :categorical-map
@@ -474,61 +492,20 @@ messages-with-features
         fun/round
         (->> (map lookup)))))
 
-(def pipe2
-  (ml/pipeline
-   (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
-                                                             :seconds-since-diff-sender 
-                                                             fun/log10)})
-   (mm/select-columns [;; :hour
-                       ;; :keyword-?
-                       :year
-                       ;; :joy :positive :anticipation
-                       ;; :stream
-                       :log-seconds-since-diff-sender
-                       :active?])
-   ;; (mm/categorical->one-hot [:keyword-?])
-   (mm/categorical->one-hot [:year])
-   ;; (mm/categorical->one-hot [:hour])
-   ;; (mm/categorical->one-hot [:stream])
-   (mm/categorical->number [:active?])
-   (mm/set-inference-target :active?)
-   {:metamorph/id :model}
-   (mm/model {:model-type :smile.classification/logistic-regression})))
+(defn classification-test-ctx->measures [classification-test-ctx]
+  (let [actual    (-> topic-date-split :test :active?)
+        predicted (-> classification-test-ctx1
+                      :metamorph/data
+                      :active?
+                      numbers->categories)]
+    {:confusion (->> (map vector actual predicted)
+                     frequencies)
+     :accuary   (fun// (-> (fun/eq actual predicted)
+                           (fun/sum))
+                       (tc/row-count actual))}))
 
-
-(def trained-ctx2
-  (pipe2 {:metamorph/data (:train topic-date-split)
-          :metamorph/mode :fit}))
-
-(-> trained-ctx2
-    :model
-    ml/explain)
-
-(-> trained-ctx2
-    :model
-    ml/thaw-model
-    (.coefficients)
-    vec)
-
-(def test-ctx2
-  (pipe2
-   (assoc trained-ctx2
-          :metamorph/data (:test topic-date-split)
-          :metamorph/mode :transform)))
-
-
-(let [actual    (-> topic-date-split :test :active?)
-      predicted (-> test-ctx2
-                    :metamorph/data
-                    :active?
-                    number->category)]
-  {:confusion (->> (map vector actual predicted)
-                   frequencies)
-   :accuary   (fun// (-> (fun/eq actual predicted)
-                       (fun/sum))
-                   (tc/row-count actual))})
-
-
+(classification-test-ctx->measures
+ classification-test-ctx1)
 
 :bye
 
