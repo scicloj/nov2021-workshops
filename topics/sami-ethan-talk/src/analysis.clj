@@ -34,6 +34,39 @@
       (tc/group-by :$split-name {:result-type :as-map})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exploring & Visualizing
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require '[scicloj.viz.api :as viz]
+         '[aerial.hanami.templates :as ht])
+
+(-> topic-date-split
+    :train
+    (tc/group-by [:keyword-?])
+    (tc/aggregate {:median-response-time
+                   (fn [ds]
+                     (-> ds
+                         :secs-until-next-response
+                         fun/median))}))
+
+
+(defn show-median-bar-chart [ds feature-column]
+  (-> ds
+      (tc/group-by [feature-column])
+      (tc/aggregate
+       {:median #(fun/median (:secs-until-next-response %))})
+      (tc/order-by feature-column)
+      (viz/data)
+      (viz/type ht/bar-chart)
+      (viz/x feature-column {:type :nominal})
+      (viz/y :median)
+      (viz/viz)))
+
+(show-median-bar-chart (:train topic-date-split) :keyword-?)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modelling 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
