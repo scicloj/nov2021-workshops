@@ -31,7 +31,7 @@
                             (:data %)
                             (:$split-name %))))
       (tc/ungroup)
-      (tc/group-by :$split-name {:result-type :as-maps})))
+      (tc/group-by :$split-name {:result-type :as-map})))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modelling 
