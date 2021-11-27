@@ -81,34 +81,45 @@
          '[tech.v3.datatype.statistics :as stats])
 
 ;; pipeline that works but no scoring yet
-(def mypipe
+(def ols-pipe1
   (ml/pipeline
-   (tc-pipe/select-columns [:year :active?])
-   (mm/categorical->number [:active?])
-   (mm/set-inference-target :active?)
-   (mm/model {:model-type :smile.classification/decision-tree})))
+   (tc-pipe/select-columns [:year :secs-until-next-response])
+   (mm/categorical->one-hot [:year])
+   (mm/set-inference-target :secs-until-next-response)
+   {:metamorph/id :trained-model}
+   (mm/model {:model-type :smile.regression/ordinary-least-square})))
 
-(def split-pair (our-split messages))
 
 (def trained-ctx
-  (mypipe {:metamorph/data (:train split-pair)
-           :metamorph/mode :fit}))
+  (ols-pipe1 {:metamorph/data (:train topic-date-split) 
+             :metamorph/mode :fit}))
 
-trained-ctx
+(-> trained-ctx
+    :trained-model
+    ml/explain)
 
 (def test-ctx
-  (mypipe
+  (ols-pipe1
    (assoc trained-ctx
-          :metamorph/data (:test split-pair)
+          :metamorph/data (:test topic-date-split)
           :metamorph/mode :transform)))
 
-(let [actual    (-> split-pair :test :active?)
+(-> test-ctx
+    :metamorph/data)
+
+(let [actual    (-> topic-date-split
+                    :test
+                    :secs-until-next-response)
       predicted (-> test-ctx
                     :metamorph/data
-                    (tmd-model/column-values->categorical :active?))]
-  (fun// (-> (fun/eq actual predicted)
-             (fun/sum))
-         (tc/row-count actual)))
+                    :secs-until-next-response)]
+  (loss/mae predicted actual))
+
+;; (* 60 60 24)
+
+;; regularization
+
+
 
 
 
