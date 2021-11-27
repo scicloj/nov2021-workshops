@@ -6,7 +6,7 @@
 
 ;; # setup
 
-(ns data-science-walkrhrough-2021-11-26.ml
+(ns data-science-walkrhrough-2021-11-27.ml
   (:require [tablecloth.api :as tc]
             [tablecloth.time.api :as time]
             [scicloj.notespace.v4.api :as notespace]

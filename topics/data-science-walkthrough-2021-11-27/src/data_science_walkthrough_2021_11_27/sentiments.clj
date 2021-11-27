@@ -1,4 +1,4 @@
-(ns data-science-walkthrough-2021-11-26.sentiments
+(ns data-science-walkthrough-2021-11-27.sentiments
   (:require [tablecloth.api :as tc]
             [tech.v3.datatype.functional :as fun]
             [clojure.string :as s]))

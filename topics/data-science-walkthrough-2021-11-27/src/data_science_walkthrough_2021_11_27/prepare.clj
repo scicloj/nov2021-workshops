@@ -1,10 +1,10 @@
-(ns data-science-walkrhrough-2021-11-26.preare
+(ns data-science-walkrhrough-2021-11-27.preare
   (:require [tablecloth.api :as tc]
            [tech.v3.datatype :refer [emap] :as dtype]
            [tech.v3.datatype.functional :as fun]
            [tech.v3.datatype.datetime :as dtype-dt]
            [clojure.string :as s]
-           [data-science-walkrhrough-2021-11-26.sentiments :as sentiments]))
+           [data-science-walkrhrough-2021-11-27.sentiments :as sentiments]))
 
 
 (defonce raw-data (read-string
