@@ -1,5 +1,5 @@
 {:deps      {org.clojure/clojure {:mvn/version "1.10.3"}
-             scicloj/notespace {:mvn/version "4-alpha-16"}
+             scicloj/notespace {:mvn/version "4-alpha-18"}
              #_{:local/root "../../../notespace"}
              aerial.hanami/aerial.hanami {:mvn/version "0.12.9"}
              org.scicloj/viz.clj {:mvn/version "0.1.1-SNAPSHOT"}
