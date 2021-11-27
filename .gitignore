@@ -13,4 +13,3 @@ pom.xml.asc
 .nrepl-port
 .cpcache/
 /zulip-scicloj.txt
-prepared-messages.csv
