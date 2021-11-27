@@ -47,33 +47,6 @@
          '[tech.v3.dataset.modelling :as tmd-model]
          '[tech.v3.datatype.statistics :as stats])
 
-(defn score [split-pair features target-column model-type]
-  (let [all-columns (conj features target-column)
-        train-ds (tc/select-columns (:train split-pair) all-columns)
-        test-ds  (tc/select-columns (:test split-pair) features)
-        model (-> train-ds
-                  (tmd/categorical->number [:active?])
-                  (tmd-model/set-inference-target :active?)
-                  (ml/train {:model-type model-type}))
-        predicted (ml/predict test-ds model)]
-    (let [actual (-> split-pair :test :active?)
-          predictions (-> predicted
-                          (tmd-model/column-values->categorical :active?))]
-      (fun//
-       (-> (fun/eq actual predictions)
-           (fun/sum))
-       (tc/row-count test-ds)))))
-
-;; this yields a ds with predictions and i think related probabilities
-;; how do we analyze this further. need to join this result again with
-;; original data?
-
-(-> messages
-    our-split
-    (score [:year]
-           :active?
-           :smile.classification/decision-tree))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modelling w/ Pipeline
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
