@@ -1,4 +1,4 @@
-(ns sentiments
+(ns data-science-walkthrough-2021-11-26.sentiments
   (:require [tablecloth.api :as tc]
             [tech.v3.datatype.functional :as fun]
             [clojure.string :as s]))
@@ -115,3 +115,6 @@
       (tc/drop-rows #(> 1000 (:word-count %)))
       (tc/order-by :sentiment :desc)
       (tc/tail)))
+
+(def sentiment-colnames
+  [:afinn-sentiment :trust :surprise :joy :positive :negative :anticipation :anger :sadness :fear])
