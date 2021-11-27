@@ -89,17 +89,28 @@
    {:metamorph/id :trained-model}
    (mm/model {:model-type :smile.regression/ordinary-least-square})))
 
+;; regularization
+(def ols-pipe-regularized
+  (ml/pipeline
+   (tc-pipe/select-columns [:year :secs-until-next-response])
+   (mm/categorical->one-hot [:year])
+   (mm/set-inference-target :secs-until-next-response)
+   {:metamorph/id :model}
+   (mm/model {:model-type :smile.regression/elastic-net 
+              :lambda1 1.0 :lambda2 1.0 :max-iterations 2000})))
+
 
 (def trained-ctx
-  (ols-pipe1 {:metamorph/data (:train topic-date-split) 
-             :metamorph/mode :fit}))
+  (ols-pipe-regularized
+   {:metamorph/data (:train topic-date-split)
+    :metamorph/mode :fit}))
 
 (-> trained-ctx
-    :trained-model
+    :model
     ml/explain)
 
 (def test-ctx
-  (ols-pipe1
+  (ols-pipe-regularized
    (assoc trained-ctx
           :metamorph/data (:test topic-date-split)
           :metamorph/mode :transform)))
