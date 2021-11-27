@@ -156,24 +156,36 @@ prepared-messages
     :safe-sender-id
     frequencies)
 
-(-> prepared-messages
+(-> messages-with-features
     (tc/group-by [:stream :topic])
+    (tc/select-columns [:prev-response-time
+                        :response-time
+                        :next-response-time])
     :data
     first)
 
+messages-with-features
+
+
+
 ;; # ml preparations
 
-
+(-> {:x (range 9)
+     :y (repeatedly 9 rand)}
+    tc/dataset
+    (tc/split :holdout {:seed 1}))
 
 (def topic-date-split
   (-> messages-with-features
       (tc/select-rows (fn [row]
-                        (->> row
-                             ((juxt :response-time
-                                    :next-response-time
-                                    :prev-response-time))
-                             (every? pos?))))
-      (tc/group-by [:topic :local-date])
+                        (and (->> row
+                                  ((juxt :response-time
+                                         :next-response-time
+                                         :prev-response-time))
+                                  (every? pos?))
+                             (not= (:response-time row)
+                                   (:next-response-time row)))))
+      (tc/group-by [:stream :topic :local-date])
       (tc/without-grouping-> (tc/split :holdout {:seed 1})
                              (tc/add-column
                               :data
@@ -190,20 +202,19 @@ prepared-messages
 
 ;; # exploring-train
 
-
-^kind/vega
-(-> topic-date-split
-    :train
-    :next-response-time
-    (tech.viz.vega/histogram :next-response-time))
-
-^kind/vega
-(-> topic-date-split
-    :train
-    :next-response-time
-    fun/log10
-    (->> (filter pos?))
-    (tech.viz.vega/histogram :log-next-response-time))
+^kind/hiccup
+[:div
+ [:p/vega
+  (-> topic-date-split
+      :train
+      :next-response-time
+      (tech.viz.vega/histogram :next-response-time))]
+ [:p/vega
+  (-> topic-date-split
+      :train
+      :next-response-time
+      fun/log10
+      (tech.viz.vega/histogram :log-next-response-time))]]
 
 
 (-> topic-date-split
@@ -359,16 +370,27 @@ prepared-messages
      (apply fastmath.stats/correlation))
 
 
+;; # scicloj.ml
+
+;; - experience the basic use of scicloj.ml on a real data problem
+
+;; - learn about pipelines (metamorph, metamorph.ml)
+
+;; - see some advanced uses of scicloj.ml (e.g., tuning over whole pipelines)
+
+
 ;; # regression
+
+;; fit / transform
 
 (def regression-pipe1
   (ml/pipeline
-   (tc-pipe/add-columns {:log-response-time #(-> %
-                                                             :response-time 
-                                                             fun/log10)
-                         :log-next-response-time #(-> %
-                                                      :next-response-time
-                                                      fun/log10)})
+   (mm/add-columns {:log-response-time      #(-> %
+                                                 :response-time 
+                                                 fun/log10)
+                    :log-next-response-time #(-> %
+                                                 :next-response-time
+                                                 fun/log10)})
    (mm/select-columns [:log-response-time
                        :log-next-response-time])
    (mm/set-inference-target :log-next-response-time)
@@ -377,17 +399,20 @@ prepared-messages
 
 (def regression-trained-ctx1
   (regression-pipe1 {:metamorph/data (:train topic-date-split)
-          :metamorph/mode :fit}))
+                     :metamorph/mode :fit}))
+
+(-> regression-trained-ctx1
+    :model
+    ml/explain)
+
+(-> regression-trained-ctx1
+    (update-in [:model :model-data] dissoc :model-as-bytes))
 
 (def regression-test-ctx1
   (regression-pipe1
    (assoc regression-trained-ctx1
           :metamorph/data (:test topic-date-split)
           :metamorph/mode :transform)))
-
-(-> regression-trained-ctx1
-    :model
-    ml/explain)
 
 (defn regression-test-ctx->measures [regression-test-ctx]
   (let [actual        (-> topic-date-split
@@ -404,8 +429,12 @@ prepared-messages
         mse           (loss/mse actual predicted)]
     {:mse-of-logs mse-of-logs
      :mse         mse
-     :R2-of-logs  (fun// mse-of-logs (stats/variance log-actual))
-     :R2          (fun// mse (stats/variance actual))}))
+     :R2-of-logs  (fun/- 1
+                         (-> mse-of-logs
+                             (fun// (stats/variance log-actual))))
+     :R2          (fun/- 1
+                         (fun// mse
+                                (stats/variance actual)))}))
 
 (regression-test-ctx->measures regression-test-ctx1)
 
