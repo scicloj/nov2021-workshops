@@ -40,92 +40,6 @@
 ;; # initial exploring dataset
 
 prepared-messages
-
-(-> prepared-messages
-    tmd/shape)
-
-(-> prepared-messages
-    :stream
-    set)
-
-(-> prepared-messages
-    :topic
-    set)
-
-(-> prepared-messages
-    :topic
-    set
-    count)
-
-(-> prepared-messages
-    :sender-id
-    set
-    count)
-
-^kind/vega
-(-> prepared-messages
-     :sender-id
-     frequencies
-     (->> (map second))
-     frequencies
-     (->> (map (fn [[post-count user-count]]
-                 {:posts post-count
-                  :users user-count})))
-     tc/dataset
-     viz/data
-     (viz/y :posts)
-     (viz/x :users)
-     (viz/type ht/point-chart)
-     (assoc :XSCALE {:type :log}
-          :YSCALE {:;TODO: ype :log})
-                   viz/viz)
-
-(-> prepared-messages
-    :topic
-    frequencies
-    (->> (map second))
-    frequencies
-    (->> (map (fn [[post-count topic-count]]
-                {:posts post-count
-                 :topic topic-count})))
-    tc/dataset
-    viz/data
-
-    (viz/y :posts)
-    (viz/x :topic)
-    (viz/type ht/point-chart)
-    (assoc :XSCALE {:type :log}
-           :YSCALE {:type :log})
-    viz/viz)
-
-;; # prepared sentiment features
-
-
-(sentiment/aggregate-mean-afinn-score mess-w-sentiments)
-;; | :word-count | :afinn-sentiment | :sentiment |
-;; |------------:|-----------------:|-----------:|
-;; |    876432.0 |          35121.0 |  0.0400727 |
-
-(aggregate-mean-sentiments  mess-w-sentiments)
-
-{:afinn-sentiment 0.04007270387206309,
- :surprise 0.00433005641053727,
- :message-word-count 1.0,
- :joy 9.127918651988973E-6,
- :positive 6.731840005841868E-5,
- :negative 3.422969494495865E-6,
- :anticipation 1.2550888146484839E-5,
- :anger 5.24855322489366E-5,
- :sadness 1.4376471876882633E-4,
- :trust 0.14719453420231118,
- :fear 0.0}
-
-
-;; # features
-
-(defn seconds-since-different-sender [sender gap-duration]
-  (->> (map vector sender gap-duration)
-       (reduce (fn [acc current]
                  (let [[last-sender last-gap-duration] (first acc)
                        [current-sender current-gap-duratiion] current]
                    (if (= current-sender last-sender)
@@ -145,6 +59,15 @@ prepared-messages
 
 (def quick-response-threshold
   (* 10 60))
+
+
+(-> messages
+    (tc/add-column :date-time (fn [ds]
+                                (->> ds
+                                     :timestamp
+                                     (map (partial * 1000))
+                                     (map #(time/milliseconds->anytime % :local-date-time)))))
+    tc/head)
 
 (def messages-with-features
   (-> prepared-messages
@@ -204,6 +127,8 @@ prepared-messages
                             fun/mean
                             {:relative-window-position :left}))))
 
+
+      
       (tc/ungroup)
       (tc/add-column :safe-sender-id
                      (fn [ds]
@@ -224,6 +149,9 @@ prepared-messages
                                                 (or -1)))))))))))
       (tc/select-rows (fn [row]
                         (-> row :year (>= 2019))))))
+
+(-> messages-with-features
+    tc/column-names)
 
 (-> messages-with-features
     :safe-sender-id

@@ -1,6 +1,6 @@
 (ns reddit-benchmark
   (:require [tablecloth.api :as tc]
-            [data-science-walkrhrough-2021-11-26.sentiments :as sentiments]))
+            [data-science-walkthrough-2021-11-26.sentiments :as sentiments]))
 
 (def reddit (->
              (tc/dataset "/home/sakalli/downloads/reddit/reddit_database.csv"  {:key-fn keyword})

@@ -13,3 +13,4 @@ pom.xml.asc
 .nrepl-port
 .cpcache/
 /zulip-scicloj.txt
+/topics/data-science-walkthrough-2021-11-26/data/scicloj-zulip.edn
