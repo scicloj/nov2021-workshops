@@ -23,6 +23,7 @@
 (def topic-date-split
   (-> messages
       (tc/group-by [:topic :local-date])
+      (tc/drop-rows (comp #(= % 2018) :year))
       (tc/without-grouping->
        (tc/split :holdout {:seed 1})
        (tc/add-column :data
