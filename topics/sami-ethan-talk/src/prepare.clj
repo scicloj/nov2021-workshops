@@ -74,7 +74,7 @@
         (tc/add-column :prompt-response?
                        #(fun/< (:secs-since-diff-sender %)
                                prompt-response-threshold))
-        (tc/add-column :next-response-time-until
+        (tc/add-column :secs-until-next-response
                        #(fun/shift (:secs-since-diff-sender %) -1))
         (tc/add-column :next-response-prompt?
                        #(fun/< (fun/shift (:secs-since-diff-sender %) -1)
