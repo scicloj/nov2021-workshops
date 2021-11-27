@@ -4,6 +4,7 @@
 
 ;; Sami Kallinen, Ethan Miller, Daniel Slutsky
 
+;; [scicloj.ml](https://github.com/scicloj/scicloj.ml)
 :_
 ;; # setup
 
@@ -40,7 +41,7 @@
 
   (notespace/restart-events!))
 
-(def prepared-messages
+(defonce prepared-messages
   (-> "data/prepared-messages.csv"
       (tc/dataset {:key-fn keyword
                    :dataset-name "prepared messages"})))
@@ -79,9 +80,9 @@ prepared-messages
                                               (fun/eq sender-id (fun/shift sender-id 1))))
       (tc/add-column :seconds-since-last #(let [timestamp (:timestamp %)]
                                             (fun/- timestamp (fun/shift timestamp 1))))
-      (tc/add-column :seconds-since-diff-sender #(seconds-since-different-sender
-                                                  (:sender-id %) (:seconds-since-last %)))
-      (tc/drop-rows (complement :seconds-since-diff-sender))
+      (tc/add-column :response-time #(seconds-since-different-sender
+                                      (:sender-id %) (:seconds-since-last %)))
+      (tc/drop-rows (complement :response-time))
                                         ; dropping messages which are not the firsts
                                         ; in a sequence by the same sender
       
@@ -107,30 +108,53 @@ prepared-messages
                                           (:date-time ds)))
                        :hour       #(emap time/hour :int32 (:date-time %))
                        :year       #(emap time/year :int32 (:date-time %))})
+      (tc/add-column :prev-response-time
+                     #(-> %
+                          :response-time
+                          (fun/shift 1)))
       (tc/add-column :next-response-time
                      #(-> %
-                          :seconds-since-diff-sender
+                          :response-time
                           (fun/shift -1)
                           (fun/min seconds-in-a-week)))
       (tc/add-column :active?
                      #(-> %
                           :next-response-time
                           (fun/< quick-response-threshold)))
-      (tc/add-column :ma-of-log-seconds-since-diff-sender
+      (tc/add-column :ma-of-log-response-time
                      (fn [ds]
                        (-> ds
-                           :seconds-since-diff-sender
+                           :response-time
                            fun/log10
                            (rolling/fixed-rolling-window
                             3
                             fun/mean
                             {:relative-window-position :left}))))
+
       (tc/ungroup)
+      (tc/add-column :safe-sender-id
+                     (fn [ds]
+                       (-> ds
+                           :sender-id
+                           ((fn [values]
+                              (let [frequent-values (->> values
+                                                         frequencies
+                                                         (sort-by val)
+                                                         reverse
+                                                         (take 30)
+                                                         (map key)
+                                                         set)]
+                                (->> values
+                                     (map (fn [value]
+                                            (-> value
+                                                frequent-values
+                                                (or -1)))))))))))
       (tc/select-rows (fn [row]
                         (-> row :year (>= 2019))))))
 
-messages-with-features
-
+(-> messages-with-features
+    :safe-sender-id
+    frequencies)
 
 (-> prepared-messages
     (tc/group-by [:stream :topic])
@@ -140,11 +164,14 @@ messages-with-features
 ;; # ml preparations
 
 
+
 (def topic-date-split
   (-> messages-with-features
       (tc/select-rows (fn [row]
                         (->> row
-                             ((juxt :seconds-since-diff-sender :next-response-time))
+                             ((juxt :response-time
+                                    :next-response-time
+                                    :prev-response-time))
                              (every? pos?))))
       (tc/group-by [:topic :local-date])
       (tc/without-grouping-> (tc/split :holdout {:seed 1})
@@ -156,6 +183,10 @@ messages-with-features
                                     (:$split-name %))))
       tc/ungroup
       (tc/group-by :$split-name {:result-type :as-map})))
+
+(->> topic-date-split
+     vals
+     (map (comp frequencies :safe-sender-id)))
 
 ;; # exploring-train
 
@@ -308,13 +339,13 @@ messages-with-features
 
 (-> topic-date-split
     :train
-    (tc/select-columns [:seconds-since-diff-sender :next-response-time])
+    (tc/select-columns [:response-time :next-response-time])
     (tc/select-rows (fn [row]
                       (->> row
                            vals
                            (every? pos?))))
     viz/data
-    (viz/x :seconds-since-diff-sender)
+    (viz/x :response-time)
     (viz/y :next-response-time)
     (viz/type ht/point-chart)
     (assoc :XSCALE {:type "log"}
@@ -323,7 +354,7 @@ messages-with-features
 
 (->> topic-date-split
      :train
-     ((juxt :seconds-since-diff-sender :next-response-time))
+     ((juxt :response-time :next-response-time))
      (map fun/log)
      (apply fastmath.stats/correlation))
 
@@ -332,13 +363,13 @@ messages-with-features
 
 (def regression-pipe1
   (ml/pipeline
-   (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
-                                                             :seconds-since-diff-sender 
+   (tc-pipe/add-columns {:log-response-time #(-> %
+                                                             :response-time 
                                                              fun/log10)
                          :log-next-response-time #(-> %
                                                       :next-response-time
                                                       fun/log10)})
-   (mm/select-columns [:log-seconds-since-diff-sender
+   (mm/select-columns [:log-response-time
                        :log-next-response-time])
    (mm/set-inference-target :log-next-response-time)
    {:metamorph/id :model}
@@ -418,8 +449,8 @@ messages-with-features
 
 (def regression-pipe2
   (ml/pipeline
-   (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
-                                                             :seconds-since-diff-sender 
+   (tc-pipe/add-columns {:log-response-time #(-> %
+                                                             :response-time 
                                                              fun/log10)
                          :log-next-response-time #(-> %
                                                       :next-response-time
@@ -431,7 +462,7 @@ messages-with-features
                        :sadness
                        :anger
                        :anticipation
-                       :log-seconds-since-diff-sender
+                       :log-response-time
                        :log-next-response-time])
    (mm/categorical->one-hot [:stream])
    (mm/categorical->one-hot [:year])
@@ -461,10 +492,10 @@ messages-with-features
 
 (def classification-pipe1
   (ml/pipeline
-   (tc-pipe/add-columns {:log-seconds-since-diff-sender #(-> %
-                                                             :seconds-since-diff-sender 
+   (tc-pipe/add-columns {:log-response-time #(-> %
+                                                             :response-time 
                                                              fun/log10)})
-   (mm/select-columns [:log-seconds-since-diff-sender
+   (mm/select-columns [:log-response-time
                        :active?])
    (mm/categorical->number [:active?])
    (mm/set-inference-target :active?)
@@ -494,7 +525,7 @@ messages-with-features
 
 (defn classification-test-ctx->measures [classification-test-ctx]
   (let [actual    (-> topic-date-split :test :active?)
-        predicted (-> classification-test-ctx1
+        predicted (-> classification-test-ctx
                       :metamorph/data
                       :active?
                       numbers->categories)]
@@ -506,6 +537,55 @@ messages-with-features
 
 (classification-test-ctx->measures
  classification-test-ctx1)
+
+
+
+(def classification-pipe2
+  (ml/pipeline
+   (tc-pipe/add-columns {:log-response-time #(-> %
+                                                 :response-time 
+                                                 fun/log10)
+                         :log-prev-response-time #(-> %
+                                                      :prev-response-time 
+                                                      fun/log10)})
+   (mm/select-columns [:log-response-time
+                       :log-prev-response-time
+                       :joy :positive :anticipation :anger :sadness
+                       :hour
+                       :stream
+                       :safe-sender-id
+                       :active?])
+   (mm/categorical->one-hot [:stream :safe-sender-id
+                             :hour])
+   (mm/categorical->number [:active?])
+   (mm/set-inference-target :active?)
+   {:metamorph/id :model}
+   (mm/model {:model-type :smile.classification/logistic-regression
+              :lambda 1.0})))
+
+(def classification-trained-ctx2
+  (classification-pipe2 {:metamorph/data (:train topic-date-split)
+                         :metamorph/mode :fit}))
+
+(def classification-test-ctx2
+  (classification-pipe2
+   (assoc classification-trained-ctx2
+          :metamorph/data (:test topic-date-split)
+          :metamorph/mode :transform)))
+
+(defn numbers->categories [column]
+  (let [lookup (->> column
+                    meta
+                    :categorical-map
+                    :lookup-table
+                    (map (comp vec reverse))
+                    (into {}))]
+    (-> column
+        fun/round
+        (->> (map lookup)))))
+
+(classification-test-ctx->measures
+ classification-test-ctx2)
 
 :bye
 
