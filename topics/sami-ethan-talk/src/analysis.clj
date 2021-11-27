@@ -47,10 +47,6 @@
          '[tech.v3.dataset.modelling :as tmd-model]
          '[tech.v3.datatype.statistics :as stats])
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Modelling w/ Pipeline
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;; pipeline that works but no scoring yet
 (def mypipe
   (ml/pipeline
