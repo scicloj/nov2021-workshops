@@ -20,7 +20,7 @@
 ;; Splitting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn our-split [ds]
+(defn topic-day-split [ds]
   (let [sds (-> ds
                 (tc/group-by [:subject :local-date])
                 (tc/without-grouping-> (tc/split :holdout)))
