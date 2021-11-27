@@ -20,7 +20,7 @@
 ;; Splitting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def topic-day-split
+(def topic-date-split
   (-> messages
       (tc/group-by [:topic :local-date])
       (tc/without-grouping->
