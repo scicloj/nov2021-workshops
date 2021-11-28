@@ -272,7 +272,23 @@ messages-with-features
       (viz/x "month")
       (viz/y "num-messages")
       (viz/color "year")
-      (viz/viz))]]
+      (viz/viz)
+      )]]
+
+;; visualizing messsage volume at different frequencies
+(-> messages-with-features
+    (time/index-by :date-time)
+    (time/adjust-frequency time/->days
+                           {:ungroup? false
+                            :include-columns [:year]})
+    (tc/aggregate {:num-messages tc/row-count})
+    (tc/update-columns {:date-time (partial map str)})
+    (viz/data)
+    (viz/type ht/line-chart)
+    (viz/x "date-time" {:type :temporal})
+    (viz/y "num-messages")
+    (viz/color "year")
+    (viz/viz))
 
 
 ;; # ml preparations
