@@ -665,7 +665,7 @@ messages-with-features
                       numbers->categories)]
     {:confusion (->> (map vector actual predicted)
                      frequencies)
-     :accuary   (fun// (-> (fun/eq actual predicted)
+     :accuracy   (fun// (-> (fun/eq actual predicted)
                            (fun/sum))
                        (tc/row-count actual))}))
 
