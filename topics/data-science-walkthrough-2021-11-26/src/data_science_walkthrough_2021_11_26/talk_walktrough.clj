@@ -62,6 +62,7 @@ prepared-messages
     set
     count)
 
+;; visualize user posting activity, e.g. how many users post very frequently
 ^kind/vega
 (-> prepared-messages
      :sender-id
@@ -80,6 +81,7 @@ prepared-messages
           :YSCALE {:;TODO: ype :log})
                    viz/viz)
 
+;; visualize distribution of number of posts in topics
 (-> prepared-messages
     :topic
     frequencies
