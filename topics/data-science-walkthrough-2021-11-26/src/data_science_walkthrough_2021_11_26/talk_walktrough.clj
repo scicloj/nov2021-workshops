@@ -256,6 +256,22 @@ prepared-messages
 messages-with-features
 
 
+;; visualize message volume month-by-month for different years
+^kind/hiccup
+[:div
+ [:h2 "monthly message volume by year"]
+ [:p/vega
+  (-> messages-with-features
+      (tc/group-by [:month :year])
+      (tc/aggregate {:num-messages tc/row-count})
+      (tc/order-by :month)
+      (viz/data)
+      (viz/type ht/line-chart)
+      (viz/x "month")
+      (viz/y "num-messages")
+      (viz/color "year")
+      (viz/viz))]]
+
 
 ;; # ml preparations
 
