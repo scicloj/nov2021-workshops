@@ -25,7 +25,8 @@
             [fastmath.random :as random]
             ;; 
             [data-science-walkthrough-2021-11-26.sentiments :as sentiment]
-            [data-science-walkrhrough-2021-11-26.reddit-benchmarks :as r]))
+            ;;[data-science-walkrhrough-2021-11-26.reddit-benchmark :as r]
+            ))
 
 
 (comment
@@ -111,18 +112,6 @@ prepared-messages
 ;; |    876432.0 |          35121.0 |  0.0400727 |
 
 (aggregate-mean-sentiments  mess-w-sentiments)
-
-{:afinn-sentiment 0.04007270387206309,
- :surprise 0.00433005641053727,
- :message-word-count 1.0,
- :joy 9.127918651988973E-6,
- :positive 6.731840005841868E-5,
- :negative 3.422969494495865E-6,
- :anticipation 1.2550888146484839E-5,
- :anger 5.24855322489366E-5,
- :sadness 1.4376471876882633E-4,
- :trust 0.14719453420231118,
- :fear 0.0}
 
 
 ;; # features
@@ -356,8 +345,7 @@ messages-with-features
     viz/viz)
 
 ^kind/hiccup
-(-> [:keyword-?
-     :year
+(-> [:year
      :joy :positive :anticipation :anger :sadness
      :stream]
     (->> (map (fn [grouping]
@@ -381,8 +369,7 @@ messages-with-features
 
 
 ^kind/hiccup
-(-> [:keyword-?
-     :year
+(-> [:year
      :joy :positive :anticipation :anger :sadness
      :stream]
     (->> (map (fn [grouping]

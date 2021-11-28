@@ -1,4 +1,4 @@
-(ns reddit-benchmark
+(ns data-science-walkthrough-2021-11-26.reddit-benchmark
   (:require [tablecloth.api :as tc]
             [data-science-walkthrough-2021-11-26.sentiments :as sentiments]))
 
