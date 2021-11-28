@@ -70,16 +70,18 @@ prepared-messages
      (->> (map second))
      frequencies
      (->> (map (fn [[post-count user-count]]
-                 {:posts post-count
-                  :users user-count})))
+                 {:num-posts post-count
+                  :num-users user-count})))
      tc/dataset
      viz/data
-     (viz/y :posts)
-     (viz/x :users)
+     (viz/y :num-posts)
+     (viz/x :num-users)
      (viz/type ht/point-chart)
      (assoc :XSCALE {:type :log}
-          :YSCALE {:;TODO: ype :log})
-                   viz/viz)
+            :YSCALE {:type :log} ;; dropping this log may be clearer
+            )
+     (viz/viz)
+     )
 
 ;; visualize distribution of number of posts in topics
 (-> prepared-messages
