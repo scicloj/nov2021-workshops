@@ -2,7 +2,7 @@
 {:deps      {org.clojure/clojure {:mvn/version "1.10.3"}}
  :aliases {:notespace {:extra-deps {nrepl/nrepl       {:mvn/version "0.8.3"}
                                     cider/cider-nrepl {:mvn/version "0.26.0"}
-                                    scicloj/notespace {:mvn/version "4-alpha-18"}}
+                                    scicloj/notespace {:mvn/version "4-alpha-19"}}
                        :main-opts  ["-m" "nrepl.cmdline"
                                     "--port" "4444"
                                     "--middleware" "[scicloj.notespace.v4.nrepl/middleware,cider.nrepl/cider-middleware]"
